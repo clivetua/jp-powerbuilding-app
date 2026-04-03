@@ -115,7 +115,7 @@ function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient, onDone, 
         queryClient.setQueryData<ExpectedSet[]>(queryKey, (old) => {
           if (!old) return old;
           return old.map((s) =>
-            s.setNumber === newSetData.setNumber
+            (s.setNumber === newSetData.setNumber && s.exerciseId === newSetData.exerciseId)
               ? {
                   ...s,
                   ...newSetData,
@@ -135,9 +135,17 @@ function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient, onDone, 
         queryClient.setQueryData(queryKey, context.previousSets);
       }
     },
-    onSettled: () => {
-      // Always refetch after error or success to ensure server sync
-      queryClient.invalidateQueries({ queryKey });
+    onSuccess: (res, newSetData) => {
+      if (res.data) {
+        queryClient.setQueryData<ExpectedSet[]>(queryKey, (old) => {
+          if (!old) return old;
+          return old.map((s) =>
+            (s.setNumber === newSetData.setNumber && s.exerciseId === newSetData.exerciseId)
+              ? { ...s, ...res.data }
+              : s
+          );
+        });
+      }
     },
   });
 

@@ -79,6 +79,25 @@ export default async function ActiveWorkoutPage({ params }: ActiveWorkoutPagePro
     unit: unitPref,
   };
 
+  const existingSets = await prisma.setLog.findMany({ where: { workoutLogId: workoutLog.id } });
+
+  const hydrateSets = (generatedSets: ReturnType<typeof generateCircuitSets>) => {
+    return generatedSets.map(set => {
+      const existingSet = existingSets.find(s => s.exerciseId === set.exerciseId && s.setNumber === set.setNumber);
+      if (existingSet) {
+        return {
+          ...set,
+          id: existingSet.id,
+          actualWeight: existingSet.actualWeight,
+          actualReps: existingSet.actualReps,
+          rpe: existingSet.rpe,
+          completedAt: existingSet.completedAt,
+        };
+      }
+      return set;
+    });
+  };
+
   const exerciseGroups = groupExercises(workout.exercises);
 
   return (
@@ -96,7 +115,8 @@ export default async function ActiveWorkoutPage({ params }: ActiveWorkoutPagePro
         {exerciseGroups.map((group, groupIndex) => {
           if (!group.isCircuit) {
             const progEx = group.exercises[0];
-            const sets = generateCircuitSets([progEx], rms);
+            let sets = generateCircuitSets([progEx], rms);
+            sets = hydrateSets(sets);
 
             return (
               <Card key={`group-${groupIndex}`} className="overflow-hidden">
@@ -110,7 +130,8 @@ export default async function ActiveWorkoutPage({ params }: ActiveWorkoutPagePro
             );
           } else {
             // Circuit
-            const sets = generateCircuitSets(group.exercises, rms);
+            let sets = generateCircuitSets(group.exercises, rms);
+            sets = hydrateSets(sets);
 
             return (
               <Card key={`group-${groupIndex}`} className="overflow-hidden border-2 border-primary/20">

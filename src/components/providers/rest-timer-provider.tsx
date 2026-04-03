@@ -7,7 +7,6 @@ type RestTimerContextType = {
   timeLeft: number;
   startTimer: (seconds: number) => void;
   stopTimer: () => void;
-  addTime: (seconds: number) => void;
 };
 
 const RestTimerContext = createContext<RestTimerContextType | undefined>(undefined);
@@ -44,12 +43,8 @@ export function RestTimerProvider({ children }: { children: ReactNode }) {
     setTimeLeft(0);
   };
 
-  const addTime = (seconds: number) => {
-    setTimeLeft((prev) => prev + seconds);
-  };
-
   return (
-    <RestTimerContext.Provider value={{ isActive, timeLeft, startTimer, stopTimer, addTime }}>
+    <RestTimerContext.Provider value={{ isActive, timeLeft, startTimer, stopTimer }}>
       {children}
     </RestTimerContext.Provider>
   );

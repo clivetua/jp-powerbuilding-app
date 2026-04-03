@@ -6,12 +6,12 @@ import prisma from '@/lib/prisma';
 export async function getUserCycles() {
   const user = await getUser();
   if (!user) {
-    throw new Error('Unauthorized');
+    return { error: 'Unauthorized', data: null };
   }
 
   const cycles = await prisma.cycle.findMany({
     where: { userId: user.id },
   });
 
-  return cycles;
+  return { error: null, data: cycles };
 }

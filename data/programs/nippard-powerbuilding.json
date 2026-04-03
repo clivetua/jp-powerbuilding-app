@@ -1,0 +1,658 @@
+{
+  "name": "Jeff Nippard Powerbuilding Phase 1",
+  "description": "A 10-week powerbuilding program focusing on increasing the SBD while putting on size. Week 11 is a deload.",
+  "totalWeeks": 11,
+  "daysPerWeek": 4,
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "type": "upper_lower",
+      "workouts": [
+        {
+          "dayNumber": 1,
+          "label": "Upper Body 1",
+          "exercises": [
+            {
+              "name": "Bench Press",
+              "muscleGroup": "Chest",
+              "category": "primary",
+              "orderIndex": 0,
+              "warmupSets": 3,
+              "workingSets": 3,
+              "targetReps": "5",
+              "percent1rm": 75,
+              "targetRpe": 7,
+              "restSeconds": 180,
+              "notes": "Control the eccentric, explosive concentric. Pause on the chest."
+            },
+            {
+              "name": "Barbell Row",
+              "muscleGroup": "Back",
+              "category": "secondary",
+              "orderIndex": 1,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "8-10",
+              "targetRpe": 8,
+              "restSeconds": 120,
+              "notes": "Keep back straight, pull to belly button."
+            },
+            {
+              "name": "Overhead Press",
+              "muscleGroup": "Shoulders",
+              "category": "secondary",
+              "orderIndex": 2,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "8-10",
+              "targetRpe": 8,
+              "restSeconds": 120,
+              "notes": "Core tight, do not use leg drive."
+            },
+            {
+              "name": "Lat Pulldown",
+              "muscleGroup": "Back",
+              "category": "secondary",
+              "orderIndex": 3,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 8,
+              "restSeconds": 90,
+              "notes": "Full stretch at the top, squeeze at the bottom."
+            },
+            {
+              "name": "Dumbbell Lateral Raise",
+              "muscleGroup": "Shoulders",
+              "category": "tertiary",
+              "orderIndex": 4,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "12-15",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "notes": "Lead with the elbows, slight forward lean."
+            },
+            {
+              "name": "Tricep Extension",
+              "muscleGroup": "Arms",
+              "category": "tertiary",
+              "orderIndex": 5,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "circuitGroup": "A",
+              "notes": "Keep elbows tucked, focus on the squeeze."
+            },
+            {
+              "name": "Bicep Curl",
+              "muscleGroup": "Arms",
+              "category": "tertiary",
+              "orderIndex": 6,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "circuitGroup": "A",
+              "notes": "Control the eccentric, avoid swinging."
+            }
+          ]
+        },
+        {
+          "dayNumber": 2,
+          "label": "Lower Body 1",
+          "exercises": [
+            {
+              "name": "Squat",
+              "muscleGroup": "Legs",
+              "category": "primary",
+              "orderIndex": 0,
+              "warmupSets": 3,
+              "workingSets": 3,
+              "targetReps": "5",
+              "percent1rm": 75,
+              "targetRpe": 7,
+              "restSeconds": 180,
+              "notes": "Hit depth. Keep chest up."
+            },
+            {
+              "name": "Romanian Deadlift",
+              "muscleGroup": "Legs",
+              "category": "secondary",
+              "orderIndex": 1,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "8-10",
+              "targetRpe": 8,
+              "restSeconds": 120,
+              "notes": "Hinge at the hips, slight bend in knees."
+            },
+            {
+              "name": "Leg Press",
+              "muscleGroup": "Legs",
+              "category": "secondary",
+              "orderIndex": 2,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 8,
+              "restSeconds": 120,
+              "notes": "Control the descent, do not lock knees."
+            },
+            {
+              "name": "Leg Curl",
+              "muscleGroup": "Legs",
+              "category": "tertiary",
+              "orderIndex": 3,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "12-15",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "notes": "Squeeze hamstrings at the top."
+            },
+            {
+              "name": "Calf Raise",
+              "muscleGroup": "Legs",
+              "category": "tertiary",
+              "orderIndex": 4,
+              "warmupSets": 0,
+              "workingSets": 4,
+              "targetReps": "12-15",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "notes": "Pause at the bottom stretch."
+            }
+          ]
+        },
+        {
+          "dayNumber": 3,
+          "label": "Upper Body 2",
+          "exercises": [
+            {
+              "name": "Incline Bench Press",
+              "muscleGroup": "Chest",
+              "category": "secondary",
+              "orderIndex": 0,
+              "warmupSets": 2,
+              "workingSets": 3,
+              "targetReps": "8",
+              "targetRpe": 8,
+              "restSeconds": 150,
+              "notes": "Focus on upper chest contraction."
+            },
+            {
+              "name": "Pull Up",
+              "muscleGroup": "Back",
+              "category": "secondary",
+              "orderIndex": 1,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "8-10",
+              "targetRpe": 8,
+              "restSeconds": 120,
+              "notes": "Full range of motion, clear the bar with chin."
+            },
+            {
+              "name": "Machine Chest Press",
+              "muscleGroup": "Chest",
+              "category": "tertiary",
+              "orderIndex": 2,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 120,
+              "notes": "Squeeze at the peak contraction."
+            },
+            {
+              "name": "Seated Cable Row",
+              "muscleGroup": "Back",
+              "category": "tertiary",
+              "orderIndex": 3,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 8,
+              "restSeconds": 90,
+              "notes": "Keep chest up against the pad if supported."
+            },
+            {
+              "name": "Face Pull",
+              "muscleGroup": "Shoulders",
+              "category": "tertiary",
+              "orderIndex": 4,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "12-15",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "notes": "Pull to the face, squeeze rear delts."
+            },
+            {
+              "name": "Overhead Tricep Extension",
+              "muscleGroup": "Arms",
+              "category": "tertiary",
+              "orderIndex": 5,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "circuitGroup": "B",
+              "notes": "Full stretch at the bottom."
+            },
+            {
+              "name": "Hammer Curl",
+              "muscleGroup": "Arms",
+              "category": "tertiary",
+              "orderIndex": 6,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "circuitGroup": "B",
+              "notes": "Neutral grip, control the eccentric."
+            }
+          ]
+        },
+        {
+          "dayNumber": 4,
+          "label": "Lower Body 2",
+          "exercises": [
+            {
+              "name": "Deadlift",
+              "muscleGroup": "Back/Legs",
+              "category": "primary",
+              "orderIndex": 0,
+              "warmupSets": 3,
+              "workingSets": 3,
+              "targetReps": "5",
+              "percent1rm": 75,
+              "targetRpe": 7,
+              "restSeconds": 180,
+              "notes": "Brace core hard, pull slack out of the bar."
+            },
+            {
+              "name": "Hack Squat",
+              "muscleGroup": "Legs",
+              "category": "secondary",
+              "orderIndex": 1,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "8-10",
+              "targetRpe": 8,
+              "restSeconds": 150,
+              "notes": "Deep range of motion, constant tension."
+            },
+            {
+              "name": "Bulgarian Split Squat",
+              "muscleGroup": "Legs",
+              "category": "tertiary",
+              "orderIndex": 2,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 8,
+              "restSeconds": 120,
+              "notes": "Maintain balance, drop back knee straight down."
+            },
+            {
+              "name": "Leg Extension",
+              "muscleGroup": "Legs",
+              "category": "tertiary",
+              "orderIndex": 3,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "12-15",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "notes": "Squeeze quads at the top."
+            },
+            {
+              "name": "Seated Calf Raise",
+              "muscleGroup": "Legs",
+              "category": "tertiary",
+              "orderIndex": 4,
+              "warmupSets": 0,
+              "workingSets": 4,
+              "targetReps": "12-15",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "notes": "Focus on the soleus, pause at bottom."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "weekNumber": 2,
+      "type": "upper_lower",
+      "workouts": [
+        {
+          "dayNumber": 1,
+          "label": "Upper Body 1",
+          "exercises": [
+            {
+              "name": "Bench Press",
+              "muscleGroup": "Chest",
+              "category": "primary",
+              "orderIndex": 0,
+              "warmupSets": 3,
+              "workingSets": 3,
+              "targetReps": "5",
+              "percent1rm": 77.5,
+              "targetRpe": 8,
+              "restSeconds": 180,
+              "notes": "Progression from week 1. Control the eccentric."
+            },
+            {
+              "name": "Barbell Row",
+              "muscleGroup": "Back",
+              "category": "secondary",
+              "orderIndex": 1,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "8-10",
+              "targetRpe": 8,
+              "restSeconds": 120,
+              "notes": "Keep back straight, pull to belly button."
+            },
+            {
+              "name": "Overhead Press",
+              "muscleGroup": "Shoulders",
+              "category": "secondary",
+              "orderIndex": 2,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "8-10",
+              "targetRpe": 8,
+              "restSeconds": 120,
+              "notes": "Core tight, do not use leg drive."
+            },
+            {
+              "name": "Lat Pulldown",
+              "muscleGroup": "Back",
+              "category": "secondary",
+              "orderIndex": 3,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 8,
+              "restSeconds": 90,
+              "notes": "Full stretch at the top, squeeze at the bottom."
+            },
+            {
+              "name": "Dumbbell Lateral Raise",
+              "muscleGroup": "Shoulders",
+              "category": "tertiary",
+              "orderIndex": 4,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "12-15",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "notes": "Lead with the elbows, slight forward lean."
+            },
+            {
+              "name": "Tricep Extension",
+              "muscleGroup": "Arms",
+              "category": "tertiary",
+              "orderIndex": 5,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "circuitGroup": "A",
+              "notes": "Keep elbows tucked, focus on the squeeze."
+            },
+            {
+              "name": "Bicep Curl",
+              "muscleGroup": "Arms",
+              "category": "tertiary",
+              "orderIndex": 6,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "circuitGroup": "A",
+              "notes": "Control the eccentric, avoid swinging."
+            }
+          ]
+        },
+        {
+          "dayNumber": 2,
+          "label": "Lower Body 1",
+          "exercises": [
+            {
+              "name": "Squat",
+              "muscleGroup": "Legs",
+              "category": "primary",
+              "orderIndex": 0,
+              "warmupSets": 3,
+              "workingSets": 3,
+              "targetReps": "5",
+              "percent1rm": 77.5,
+              "targetRpe": 8,
+              "restSeconds": 180,
+              "notes": "Progression from week 1. Hit depth."
+            },
+            {
+              "name": "Romanian Deadlift",
+              "muscleGroup": "Legs",
+              "category": "secondary",
+              "orderIndex": 1,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "8-10",
+              "targetRpe": 9,
+              "restSeconds": 120,
+              "notes": "Hinge at the hips, slight bend in knees."
+            },
+            {
+              "name": "Leg Press",
+              "muscleGroup": "Legs",
+              "category": "secondary",
+              "orderIndex": 2,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 120,
+              "notes": "Control the descent, do not lock knees."
+            },
+            {
+              "name": "Leg Curl",
+              "muscleGroup": "Legs",
+              "category": "tertiary",
+              "orderIndex": 3,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "12-15",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "notes": "Squeeze hamstrings at the top."
+            },
+            {
+              "name": "Calf Raise",
+              "muscleGroup": "Legs",
+              "category": "tertiary",
+              "orderIndex": 4,
+              "warmupSets": 0,
+              "workingSets": 4,
+              "targetReps": "12-15",
+              "targetRpe": 10,
+              "restSeconds": 90,
+              "notes": "Pause at the bottom stretch."
+            }
+          ]
+        },
+        {
+          "dayNumber": 3,
+          "label": "Upper Body 2",
+          "exercises": [
+            {
+              "name": "Incline Bench Press",
+              "muscleGroup": "Chest",
+              "category": "secondary",
+              "orderIndex": 0,
+              "warmupSets": 2,
+              "workingSets": 3,
+              "targetReps": "8",
+              "targetRpe": 8.5,
+              "restSeconds": 150,
+              "notes": "Focus on upper chest contraction. Slight progression."
+            },
+            {
+              "name": "Pull Up",
+              "muscleGroup": "Back",
+              "category": "secondary",
+              "orderIndex": 1,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "8-10",
+              "targetRpe": 8.5,
+              "restSeconds": 120,
+              "notes": "Full range of motion, clear the bar with chin."
+            },
+            {
+              "name": "Machine Chest Press",
+              "muscleGroup": "Chest",
+              "category": "tertiary",
+              "orderIndex": 2,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 120,
+              "notes": "Squeeze at the peak contraction."
+            },
+            {
+              "name": "Seated Cable Row",
+              "muscleGroup": "Back",
+              "category": "tertiary",
+              "orderIndex": 3,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 8.5,
+              "restSeconds": 90,
+              "notes": "Keep chest up against the pad if supported."
+            },
+            {
+              "name": "Face Pull",
+              "muscleGroup": "Shoulders",
+              "category": "tertiary",
+              "orderIndex": 4,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "12-15",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "notes": "Pull to the face, squeeze rear delts."
+            },
+            {
+              "name": "Overhead Tricep Extension",
+              "muscleGroup": "Arms",
+              "category": "tertiary",
+              "orderIndex": 5,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "circuitGroup": "B",
+              "notes": "Full stretch at the bottom."
+            },
+            {
+              "name": "Hammer Curl",
+              "muscleGroup": "Arms",
+              "category": "tertiary",
+              "orderIndex": 6,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "circuitGroup": "B",
+              "notes": "Neutral grip, control the eccentric."
+            }
+          ]
+        },
+        {
+          "dayNumber": 4,
+          "label": "Lower Body 2",
+          "exercises": [
+            {
+              "name": "Deadlift",
+              "muscleGroup": "Back/Legs",
+              "category": "primary",
+              "orderIndex": 0,
+              "warmupSets": 3,
+              "workingSets": 3,
+              "targetReps": "5",
+              "percent1rm": 77.5,
+              "targetRpe": 8,
+              "restSeconds": 180,
+              "notes": "Progression from week 1. Brace core hard."
+            },
+            {
+              "name": "Hack Squat",
+              "muscleGroup": "Legs",
+              "category": "secondary",
+              "orderIndex": 1,
+              "warmupSets": 1,
+              "workingSets": 3,
+              "targetReps": "8-10",
+              "targetRpe": 8.5,
+              "restSeconds": 150,
+              "notes": "Deep range of motion, constant tension."
+            },
+            {
+              "name": "Bulgarian Split Squat",
+              "muscleGroup": "Legs",
+              "category": "tertiary",
+              "orderIndex": 2,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "10-12",
+              "targetRpe": 8.5,
+              "restSeconds": 120,
+              "notes": "Maintain balance, drop back knee straight down."
+            },
+            {
+              "name": "Leg Extension",
+              "muscleGroup": "Legs",
+              "category": "tertiary",
+              "orderIndex": 3,
+              "warmupSets": 0,
+              "workingSets": 3,
+              "targetReps": "12-15",
+              "targetRpe": 9,
+              "restSeconds": 90,
+              "notes": "Squeeze quads at the top."
+            },
+            {
+              "name": "Seated Calf Raise",
+              "muscleGroup": "Legs",
+              "category": "tertiary",
+              "orderIndex": 4,
+              "warmupSets": 0,
+              "workingSets": 4,
+              "targetReps": "12-15",
+              "targetRpe": 10,
+              "restSeconds": 90,
+              "notes": "Focus on the soleus, pause at bottom."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

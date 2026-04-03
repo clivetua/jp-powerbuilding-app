@@ -1,6 +1,9 @@
-import { PrismaClient, Exercise } from "../src/generated/prisma/client";
+import { PrismaClient } from "../src/generated/prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
+import fs from "fs";
+import path from "path";
+import { ProgramSchema } from "../src/lib/schemas/program";
 
 const connectionString =
   process.env.DATABASE_URL ||
@@ -9,776 +12,124 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const exerciseData = [
-  // Primary (Big 3)
-  { name: "Squat", muscleGroup: "Legs", category: "primary" },
-  { name: "Bench Press", muscleGroup: "Chest", category: "primary" },
-  { name: "Deadlift", muscleGroup: "Back/Legs", category: "primary" },
-  // Secondary
-  { name: "Overhead Press", muscleGroup: "Shoulders", category: "secondary" },
-  { name: "Front Squat", muscleGroup: "Legs", category: "secondary" },
-  { name: "Incline Bench Press", muscleGroup: "Chest", category: "secondary" },
-  { name: "Romanian Deadlift", muscleGroup: "Legs", category: "secondary" },
-  { name: "Barbell Row", muscleGroup: "Back", category: "secondary" },
-  { name: "Pull Up", muscleGroup: "Back", category: "secondary" },
-  { name: "Lat Pulldown", muscleGroup: "Back", category: "secondary" },
-  { name: "Leg Press", muscleGroup: "Legs", category: "secondary" },
-  { name: "Hack Squat", muscleGroup: "Legs", category: "secondary" },
-  // Tertiary / Accessories
-  {
-    name: "Dumbbell Lateral Raise",
-    muscleGroup: "Shoulders",
-    category: "tertiary",
-  },
-  { name: "Face Pull", muscleGroup: "Shoulders", category: "tertiary" },
-  { name: "Bicep Curl", muscleGroup: "Arms", category: "tertiary" },
-  { name: "Tricep Extension", muscleGroup: "Arms", category: "tertiary" },
-  { name: "Hammer Curl", muscleGroup: "Arms", category: "tertiary" },
-  { name: "Skullcrusher", muscleGroup: "Arms", category: "tertiary" },
-  { name: "Leg Extension", muscleGroup: "Legs", category: "tertiary" },
-  { name: "Leg Curl", muscleGroup: "Legs", category: "tertiary" },
-  { name: "Calf Raise", muscleGroup: "Legs", category: "tertiary" },
-  { name: "Seated Calf Raise", muscleGroup: "Legs", category: "tertiary" },
-  { name: "Cable Crunch", muscleGroup: "Core", category: "tertiary" },
-  { name: "Plank", muscleGroup: "Core", category: "tertiary" },
-  { name: "Dumbbell Fly", muscleGroup: "Chest", category: "tertiary" },
-  { name: "Pec Deck", muscleGroup: "Chest", category: "tertiary" },
-  { name: "Dumbbell Row", muscleGroup: "Back", category: "tertiary" },
-  { name: "Seated Cable Row", muscleGroup: "Back", category: "tertiary" },
-  { name: "Shrug", muscleGroup: "Shoulders", category: "tertiary" },
-  { name: "Rear Delt Fly", muscleGroup: "Shoulders", category: "tertiary" },
-  { name: "Preacher Curl", muscleGroup: "Arms", category: "tertiary" },
-  {
-    name: "Overhead Tricep Extension",
-    muscleGroup: "Arms",
-    category: "tertiary",
-  },
-  { name: "Bulgarian Split Squat", muscleGroup: "Legs", category: "tertiary" },
-  { name: "Lunge", muscleGroup: "Legs", category: "tertiary" },
-  { name: "Glute Bridge", muscleGroup: "Legs", category: "tertiary" },
-  { name: "Hip Thrust", muscleGroup: "Legs", category: "tertiary" },
-  { name: "Good Morning", muscleGroup: "Legs", category: "tertiary" },
-  { name: "Machine Chest Press", muscleGroup: "Chest", category: "tertiary" },
-  {
-    name: "Machine Shoulder Press",
-    muscleGroup: "Shoulders",
-    category: "tertiary",
-  },
-  { name: "T-Bar Row", muscleGroup: "Back", category: "tertiary" },
-];
-
 async function main() {
-  console.log("Seeding database...");
+  console.log("Seeding database from JSON files...");
 
-  // Clear existing programs and exercises for idempotency
+  // Clear existing programs and dependencies to avoid duplicates on re-seed
   await prisma.programExercise.deleteMany();
   await prisma.programWorkout.deleteMany();
   await prisma.programWeek.deleteMany();
   await prisma.program.deleteMany();
-  await prisma.exercise.deleteMany();
 
-  // 1. Create Exercise Library
-  console.log("Creating exercises...");
-  const exercises: Exercise[] = [];
-  for (const data of exerciseData) {
-    const ex = await prisma.exercise.create({ data });
-    exercises.push(ex);
+  const programsDir = path.join(process.cwd(), "data/programs");
+  if (!fs.existsSync(programsDir)) {
+    console.log(`Directory ${programsDir} not found.`);
+    return;
   }
-  const getEx = (name: string) => exercises.find((e) => e.name === name)!;
 
-  // 2. Create Program
-  console.log("Creating program...");
-  const program = await prisma.program.create({
-    data: {
-      name: "Jeff Nippard Powerbuilding Phase 1",
-      description:
-        "A 10-week powerbuilding program focusing on increasing the SBD while putting on size. Week 11 is a deload.",
-      totalWeeks: 11,
-      daysPerWeek: 4,
-    },
-  });
+  const files = fs.readdirSync(programsDir).filter((file) => file.endsWith(".json"));
 
-  // 3. Create Week 1
-  console.log("Creating Week 1...");
-  const week1 = await prisma.programWeek.create({
-    data: {
-      programId: program.id,
-      weekNumber: 1,
-      type: "upper_lower",
-    },
-  });
+  for (const file of files) {
+    console.log(`Processing ${file}...`);
+    const filePath = path.join(programsDir, file);
+    const fileContent = fs.readFileSync(filePath, "utf-8");
+    const jsonData = JSON.parse(fileContent);
 
-  // Week 1 - Day 1: Upper 1
-  const w1d1 = await prisma.programWorkout.create({
-    data: {
-      programWeekId: week1.id,
-      dayNumber: 1,
-      label: "Upper Body 1",
-    },
-  });
+    // Validate using Zod schema
+    const programData = ProgramSchema.parse(jsonData);
 
-  await prisma.programExercise.createMany({
-    data: [
-      {
-        programWorkoutId: w1d1.id,
-        exerciseId: getEx("Bench Press").id,
-        orderIndex: 0,
-        warmupSets: 3,
-        workingSets: 3,
-        targetReps: "5",
-        percent1rm: 75, // 3x5 @ 75%
-        targetRpe: 7,
-        restSeconds: 180,
-        notes:
-          "Control the eccentric, explosive concentric. Pause on the chest.",
-      },
-      {
-        programWorkoutId: w1d1.id,
-        exerciseId: getEx("Barbell Row").id,
-        orderIndex: 1,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "8-10",
-        targetRpe: 8,
-        restSeconds: 120,
-        notes: "Keep back straight, pull to belly button.",
-      },
-      {
-        programWorkoutId: w1d1.id,
-        exerciseId: getEx("Overhead Press").id,
-        orderIndex: 2,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "8-10",
-        targetRpe: 8,
-        restSeconds: 120,
-        notes: "Core tight, do not use leg drive.",
-      },
-      {
-        programWorkoutId: w1d1.id,
-        exerciseId: getEx("Lat Pulldown").id,
-        orderIndex: 3,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 8,
-        restSeconds: 90,
-        notes: "Full stretch at the top, squeeze at the bottom.",
-      },
-      {
-        programWorkoutId: w1d1.id,
-        exerciseId: getEx("Dumbbell Lateral Raise").id,
-        orderIndex: 4,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "12-15",
-        targetRpe: 9,
-        restSeconds: 90,
-        notes: "Lead with the elbows, slight forward lean.",
-      },
-      {
-        programWorkoutId: w1d1.id,
-        exerciseId: getEx("Tricep Extension").id,
-        orderIndex: 5,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 90,
-        circuitGroup: "A",
-        notes: "Keep elbows tucked, focus on the squeeze.",
-      },
-      {
-        programWorkoutId: w1d1.id,
-        exerciseId: getEx("Bicep Curl").id,
-        orderIndex: 6,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 90,
-        circuitGroup: "A",
-        notes: "Control the eccentric, avoid swinging.",
-      },
-    ],
-  });
+    await prisma.$transaction(async (tx) => {
+      console.log(`  Upserting exercises for ${programData.name}...`);
+      const exerciseMap = new Map<string, string>(); // name -> id
 
-  // Week 1 - Day 2: Lower 1
-  const w1d2 = await prisma.programWorkout.create({
-    data: {
-      programWeekId: week1.id,
-      dayNumber: 2,
-      label: "Lower Body 1",
-    },
-  });
+      // Extract all unique exercises from the program
+      for (const week of programData.weeks) {
+        for (const workout of week.workouts) {
+          for (const exercise of workout.exercises) {
+            if (!exerciseMap.has(exercise.name)) {
+              // Manual upsert using name as unique identifier
+              let existingEx = await tx.exercise.findFirst({
+                where: { name: exercise.name },
+              });
 
-  await prisma.programExercise.createMany({
-    data: [
-      {
-        programWorkoutId: w1d2.id,
-        exerciseId: getEx("Squat").id,
-        orderIndex: 0,
-        warmupSets: 3,
-        workingSets: 3,
-        targetReps: "5",
-        percent1rm: 75,
-        targetRpe: 7,
-        restSeconds: 180,
-        notes: "Hit depth. Keep chest up.",
-      },
-      {
-        programWorkoutId: w1d2.id,
-        exerciseId: getEx("Romanian Deadlift").id,
-        orderIndex: 1,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "8-10",
-        targetRpe: 8,
-        restSeconds: 120,
-        notes: "Hinge at the hips, slight bend in knees.",
-      },
-      {
-        programWorkoutId: w1d2.id,
-        exerciseId: getEx("Leg Press").id,
-        orderIndex: 2,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 8,
-        restSeconds: 120,
-        notes: "Control the descent, do not lock knees.",
-      },
-      {
-        programWorkoutId: w1d2.id,
-        exerciseId: getEx("Leg Curl").id,
-        orderIndex: 3,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "12-15",
-        targetRpe: 9,
-        restSeconds: 90,
-        notes: "Squeeze hamstrings at the top.",
-      },
-      {
-        programWorkoutId: w1d2.id,
-        exerciseId: getEx("Calf Raise").id,
-        orderIndex: 4,
-        warmupSets: 0,
-        workingSets: 4,
-        targetReps: "12-15",
-        targetRpe: 9,
-        restSeconds: 90,
-        notes: "Pause at the bottom stretch.",
-      },
-    ],
-  });
+              if (existingEx) {
+                // Update existing exercise details
+                existingEx = await tx.exercise.update({
+                  where: { id: existingEx.id },
+                  data: {
+                    muscleGroup: exercise.muscleGroup,
+                    category: exercise.category,
+                    demoVideoUrl: exercise.demoVideoUrl,
+                  },
+                });
+              } else {
+                // Create new exercise
+                existingEx = await tx.exercise.create({
+                  data: {
+                    name: exercise.name,
+                    muscleGroup: exercise.muscleGroup,
+                    category: exercise.category,
+                    demoVideoUrl: exercise.demoVideoUrl,
+                  },
+                });
+              }
+              exerciseMap.set(exercise.name, existingEx.id);
+            }
+          }
+        }
+      }
 
-  // Week 1 - Day 3: Upper 2
-  const w1d3 = await prisma.programWorkout.create({
-    data: {
-      programWeekId: week1.id,
-      dayNumber: 3,
-      label: "Upper Body 2",
-    },
-  });
+      console.log(`  Creating program: ${programData.name}...`);
+      const program = await tx.program.create({
+        data: {
+          name: programData.name,
+          description: programData.description,
+          totalWeeks: programData.totalWeeks,
+          daysPerWeek: programData.daysPerWeek,
+        },
+      });
 
-  await prisma.programExercise.createMany({
-    data: [
-      {
-        programWorkoutId: w1d3.id,
-        exerciseId: getEx("Incline Bench Press").id,
-        orderIndex: 0,
-        warmupSets: 2,
-        workingSets: 3,
-        targetReps: "8",
-        targetRpe: 8,
-        restSeconds: 150,
-        notes: "Focus on upper chest contraction.",
-      },
-      {
-        programWorkoutId: w1d3.id,
-        exerciseId: getEx("Pull Up").id,
-        orderIndex: 1,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "8-10",
-        targetRpe: 8,
-        restSeconds: 120,
-        notes: "Full range of motion, clear the bar with chin.",
-      },
-      {
-        programWorkoutId: w1d3.id,
-        exerciseId: getEx("Machine Chest Press").id,
-        orderIndex: 2,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 120,
-        notes: "Squeeze at the peak contraction.",
-      },
-      {
-        programWorkoutId: w1d3.id,
-        exerciseId: getEx("Seated Cable Row").id,
-        orderIndex: 3,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 8,
-        restSeconds: 90,
-        notes: "Keep chest up against the pad if supported.",
-      },
-      {
-        programWorkoutId: w1d3.id,
-        exerciseId: getEx("Face Pull").id,
-        orderIndex: 4,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "12-15",
-        targetRpe: 9,
-        restSeconds: 90,
-        notes: "Pull to the face, squeeze rear delts.",
-      },
-      {
-        programWorkoutId: w1d3.id,
-        exerciseId: getEx("Overhead Tricep Extension").id,
-        orderIndex: 5,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 90,
-        circuitGroup: "B",
-        notes: "Full stretch at the bottom.",
-      },
-      {
-        programWorkoutId: w1d3.id,
-        exerciseId: getEx("Hammer Curl").id,
-        orderIndex: 6,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 90,
-        circuitGroup: "B",
-        notes: "Neutral grip, control the eccentric.",
-      },
-    ],
-  });
+      for (const week of programData.weeks) {
+        const programWeek = await tx.programWeek.create({
+          data: {
+            programId: program.id,
+            weekNumber: week.weekNumber,
+            type: week.type,
+          },
+        });
 
-  // Week 1 - Day 4: Lower 2
-  const w1d4 = await prisma.programWorkout.create({
-    data: {
-      programWeekId: week1.id,
-      dayNumber: 4,
-      label: "Lower Body 2",
-    },
-  });
+        for (const workout of week.workouts) {
+          const programWorkout = await tx.programWorkout.create({
+            data: {
+              programWeekId: programWeek.id,
+              dayNumber: workout.dayNumber,
+              label: workout.label,
+            },
+          });
 
-  await prisma.programExercise.createMany({
-    data: [
-      {
-        programWorkoutId: w1d4.id,
-        exerciseId: getEx("Deadlift").id,
-        orderIndex: 0,
-        warmupSets: 3,
-        workingSets: 3,
-        targetReps: "5",
-        percent1rm: 75,
-        targetRpe: 7,
-        restSeconds: 180,
-        notes: "Brace core hard, pull slack out of the bar.",
-      },
-      {
-        programWorkoutId: w1d4.id,
-        exerciseId: getEx("Hack Squat").id,
-        orderIndex: 1,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "8-10",
-        targetRpe: 8,
-        restSeconds: 150,
-        notes: "Deep range of motion, constant tension.",
-      },
-      {
-        programWorkoutId: w1d4.id,
-        exerciseId: getEx("Bulgarian Split Squat").id,
-        orderIndex: 2,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 8,
-        restSeconds: 120,
-        notes: "Maintain balance, drop back knee straight down.",
-      },
-      {
-        programWorkoutId: w1d4.id,
-        exerciseId: getEx("Leg Extension").id,
-        orderIndex: 3,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "12-15",
-        targetRpe: 9,
-        restSeconds: 90,
-        notes: "Squeeze quads at the top.",
-      },
-      {
-        programWorkoutId: w1d4.id,
-        exerciseId: getEx("Seated Calf Raise").id,
-        orderIndex: 4,
-        warmupSets: 0,
-        workingSets: 4,
-        targetReps: "12-15",
-        targetRpe: 9,
-        restSeconds: 90,
-        notes: "Focus on the soleus, pause at bottom.",
-      },
-    ],
-  });
+          // Create program exercises
+          const programExercisesData = workout.exercises.map((ex) => ({
+            programWorkoutId: programWorkout.id,
+            exerciseId: exerciseMap.get(ex.name)!,
+            orderIndex: ex.orderIndex,
+            warmupSets: ex.warmupSets,
+            workingSets: ex.workingSets,
+            targetReps: ex.targetReps,
+            percent1rm: ex.percent1rm,
+            targetRpe: ex.targetRpe,
+            restSeconds: ex.restSeconds,
+            notes: ex.notes,
+            circuitGroup: ex.circuitGroup,
+          }));
 
-  // Note: Add Week 1 - Day 5 here later
-
-  // 4. Create Week 2
-  console.log("Creating Week 2...");
-  const week2 = await prisma.programWeek.create({
-    data: {
-      programId: program.id,
-      weekNumber: 2,
-      type: "upper_lower",
-    },
-  });
-
-  // Week 2 - Day 1: Upper 1
-  const w2d1 = await prisma.programWorkout.create({
-    data: {
-      programWeekId: week2.id,
-      dayNumber: 1,
-      label: "Upper Body 1",
-    },
-  });
-
-  await prisma.programExercise.createMany({
-    data: [
-      {
-        programWorkoutId: w2d1.id,
-        exerciseId: getEx("Bench Press").id,
-        orderIndex: 0,
-        warmupSets: 3,
-        workingSets: 3,
-        targetReps: "5",
-        percent1rm: 77.5, // Progression
-        targetRpe: 8,
-        restSeconds: 180,
-        notes: "Progression from week 1. Control the eccentric.",
-      },
-      {
-        programWorkoutId: w2d1.id,
-        exerciseId: getEx("Barbell Row").id,
-        orderIndex: 1,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "8-10",
-        targetRpe: 8,
-        restSeconds: 120,
-        notes: "Keep back straight, pull to belly button.",
-      },
-      {
-        programWorkoutId: w2d1.id,
-        exerciseId: getEx("Overhead Press").id,
-        orderIndex: 2,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "8-10",
-        targetRpe: 8,
-        restSeconds: 120,
-        notes: "Core tight, do not use leg drive.",
-      },
-      {
-        programWorkoutId: w2d1.id,
-        exerciseId: getEx("Lat Pulldown").id,
-        orderIndex: 3,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 8, // slight RPE increase
-        restSeconds: 90,
-        notes: "Full stretch at the top, squeeze at the bottom.",
-      },
-      {
-        programWorkoutId: w2d1.id,
-        exerciseId: getEx("Dumbbell Lateral Raise").id,
-        orderIndex: 4,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "12-15",
-        targetRpe: 9,
-        restSeconds: 90,
-        notes: "Lead with the elbows, slight forward lean.",
-      },
-      {
-        programWorkoutId: w2d1.id,
-        exerciseId: getEx("Tricep Extension").id,
-        orderIndex: 5,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 90,
-        circuitGroup: "A",
-        notes: "Keep elbows tucked, focus on the squeeze.",
-      },
-      {
-        programWorkoutId: w2d1.id,
-        exerciseId: getEx("Bicep Curl").id,
-        orderIndex: 6,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 90,
-        circuitGroup: "A",
-        notes: "Control the eccentric, avoid swinging.",
-      },
-    ],
-  });
-
-  // Week 2 - Day 2: Lower 1
-  const w2d2 = await prisma.programWorkout.create({
-    data: {
-      programWeekId: week2.id,
-      dayNumber: 2,
-      label: "Lower Body 1",
-    },
-  });
-
-  await prisma.programExercise.createMany({
-    data: [
-      {
-        programWorkoutId: w2d2.id,
-        exerciseId: getEx("Squat").id,
-        orderIndex: 0,
-        warmupSets: 3,
-        workingSets: 3,
-        targetReps: "5",
-        percent1rm: 77.5,
-        targetRpe: 8,
-        restSeconds: 180,
-        notes: "Progression from week 1. Hit depth.",
-      },
-      {
-        programWorkoutId: w2d2.id,
-        exerciseId: getEx("Romanian Deadlift").id,
-        orderIndex: 1,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "8-10",
-        targetRpe: 9,
-        restSeconds: 120,
-        notes: "Hinge at the hips, slight bend in knees.",
-      },
-      {
-        programWorkoutId: w2d2.id,
-        exerciseId: getEx("Leg Press").id,
-        orderIndex: 2,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 120,
-        notes: "Control the descent, do not lock knees.",
-      },
-      {
-        programWorkoutId: w2d2.id,
-        exerciseId: getEx("Leg Curl").id,
-        orderIndex: 3,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "12-15",
-        targetRpe: 9,
-        restSeconds: 90,
-        notes: "Squeeze hamstrings at the top.",
-      },
-      {
-        programWorkoutId: w2d2.id,
-        exerciseId: getEx("Calf Raise").id,
-        orderIndex: 4,
-        warmupSets: 0,
-        workingSets: 4,
-        targetReps: "12-15",
-        targetRpe: 10,
-        restSeconds: 90,
-        notes: "Pause at the bottom stretch.",
-      },
-    ],
-  });
-
-  // Week 2 - Day 3: Upper 2
-  const w2d3 = await prisma.programWorkout.create({
-    data: {
-      programWeekId: week2.id,
-      dayNumber: 3,
-      label: "Upper Body 2",
-    },
-  });
-
-  await prisma.programExercise.createMany({
-    data: [
-      {
-        programWorkoutId: w2d3.id,
-        exerciseId: getEx("Incline Bench Press").id,
-        orderIndex: 0,
-        warmupSets: 2,
-        workingSets: 3,
-        targetReps: "8",
-        targetRpe: 8.5,
-        restSeconds: 150,
-        notes: "Focus on upper chest contraction. Slight progression.",
-      },
-      {
-        programWorkoutId: w2d3.id,
-        exerciseId: getEx("Pull Up").id,
-        orderIndex: 1,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "8-10",
-        targetRpe: 8.5,
-        restSeconds: 120,
-        notes: "Full range of motion, clear the bar with chin.",
-      },
-      {
-        programWorkoutId: w2d3.id,
-        exerciseId: getEx("Machine Chest Press").id,
-        orderIndex: 2,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 120,
-        notes: "Squeeze at the peak contraction.",
-      },
-      {
-        programWorkoutId: w2d3.id,
-        exerciseId: getEx("Seated Cable Row").id,
-        orderIndex: 3,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 8.5,
-        restSeconds: 90,
-        notes: "Keep chest up against the pad if supported.",
-      },
-      {
-        programWorkoutId: w2d3.id,
-        exerciseId: getEx("Face Pull").id,
-        orderIndex: 4,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "12-15",
-        targetRpe: 9,
-        restSeconds: 90,
-        notes: "Pull to the face, squeeze rear delts.",
-      },
-      {
-        programWorkoutId: w2d3.id,
-        exerciseId: getEx("Overhead Tricep Extension").id,
-        orderIndex: 5,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 90,
-        circuitGroup: "B",
-        notes: "Full stretch at the bottom.",
-      },
-      {
-        programWorkoutId: w2d3.id,
-        exerciseId: getEx("Hammer Curl").id,
-        orderIndex: 6,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 9,
-        restSeconds: 90,
-        circuitGroup: "B",
-        notes: "Neutral grip, control the eccentric.",
-      },
-    ],
-  });
-
-  // Week 2 - Day 4: Lower 2
-  const w2d4 = await prisma.programWorkout.create({
-    data: {
-      programWeekId: week2.id,
-      dayNumber: 4,
-      label: "Lower Body 2",
-    },
-  });
-
-  await prisma.programExercise.createMany({
-    data: [
-      {
-        programWorkoutId: w2d4.id,
-        exerciseId: getEx("Deadlift").id,
-        orderIndex: 0,
-        warmupSets: 3,
-        workingSets: 3,
-        targetReps: "5",
-        percent1rm: 77.5,
-        targetRpe: 8,
-        restSeconds: 180,
-        notes: "Progression from week 1. Brace core hard.",
-      },
-      {
-        programWorkoutId: w2d4.id,
-        exerciseId: getEx("Hack Squat").id,
-        orderIndex: 1,
-        warmupSets: 1,
-        workingSets: 3,
-        targetReps: "8-10",
-        targetRpe: 8.5,
-        restSeconds: 150,
-        notes: "Deep range of motion, constant tension.",
-      },
-      {
-        programWorkoutId: w2d4.id,
-        exerciseId: getEx("Bulgarian Split Squat").id,
-        orderIndex: 2,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "10-12",
-        targetRpe: 8.5,
-        restSeconds: 120,
-        notes: "Maintain balance, drop back knee straight down.",
-      },
-      {
-        programWorkoutId: w2d4.id,
-        exerciseId: getEx("Leg Extension").id,
-        orderIndex: 3,
-        warmupSets: 0,
-        workingSets: 3,
-        targetReps: "12-15",
-        targetRpe: 9,
-        restSeconds: 90,
-        notes: "Squeeze quads at the top.",
-      },
-      {
-        programWorkoutId: w2d4.id,
-        exerciseId: getEx("Seated Calf Raise").id,
-        orderIndex: 4,
-        warmupSets: 0,
-        workingSets: 4,
-        targetReps: "12-15",
-        targetRpe: 10,
-        restSeconds: 90,
-        notes: "Focus on the soleus, pause at bottom.",
-      },
-    ],
-  });
-
-  // TODO: Add remaining workouts for Week 2 (Day 5)
-  // TODO: Add Weeks 3-9 (alternating logic/progressions)
-  // TODO: Add Week 10 (Max Test Week)
-  // TODO: Add Week 11 (Deload)
+          await tx.programExercise.createMany({
+            data: programExercisesData,
+          });
+        }
+      }
+    });
+    console.log(`  Successfully seeded ${programData.name}.`);
+  }
 
   console.log("Seeding completed successfully!");
 }

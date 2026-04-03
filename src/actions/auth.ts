@@ -3,7 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
-export async function login(state: unknown, formData: FormData) {
+export type AuthState = { error?: string; message?: string } | null | undefined
+
+export async function login(state: AuthState, formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
@@ -25,7 +27,7 @@ export async function login(state: unknown, formData: FormData) {
   redirect('/')
 }
 
-export async function signup(state: unknown, formData: FormData) {
+export async function signup(state: AuthState, formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
@@ -35,13 +37,17 @@ export async function signup(state: unknown, formData: FormData) {
 
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
   })
 
   if (error) {
     return { error: error.message }
+  }
+
+  if (data.user && !data.session) {
+    return { message: 'Please check your email to verify your account.' }
   }
 
   redirect('/')

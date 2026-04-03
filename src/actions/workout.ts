@@ -23,10 +23,8 @@ export async function getOrCreateWorkoutLog(programWorkoutId: string) {
     }
 
     // Check if an incomplete workout log exists for this workout
-    // "today" is implied by being incomplete. We'll find any incomplete for this programWorkoutId.
-    // If we strictly need "today", we should filter by date. Let's just find incomplete first.
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+    // We'll find any incomplete for this programWorkoutId within the last 16 hours.
+    const lookbackTime = new Date(Date.now() - 16 * 60 * 60 * 1000);
 
     const existingLog = await prisma.workoutLog.findFirst({
       where: {
@@ -35,7 +33,7 @@ export async function getOrCreateWorkoutLog(programWorkoutId: string) {
         programWorkoutId,
         completedAt: null,
         startedAt: {
-          gte: startOfToday,
+          gte: lookbackTime,
         },
       },
     });
@@ -55,8 +53,9 @@ export async function getOrCreateWorkoutLog(programWorkoutId: string) {
     });
 
     return { error: null, data: newLog };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in getOrCreateWorkoutLog:', error);
-    return { error: error.message || 'Failed to create or get workout log', data: null };
+    const message = error instanceof Error ? error.message : 'Failed to create or get workout log';
+    return { error: message, data: null };
   }
 }

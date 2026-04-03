@@ -1,5 +1,4 @@
 import { getOrCreateWorkoutLog } from '@/actions/workout';
-import { redirect } from 'next/navigation';
 
 interface ActiveWorkoutPageProps {
   params: Promise<{

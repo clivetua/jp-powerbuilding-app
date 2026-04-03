@@ -3,6 +3,7 @@ import { mockDeep, mockReset } from 'vitest-mock-extended';
 import { PrismaClient } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { getOrCreateWorkoutLog } from './workout';
+import { getUser } from '@/lib/auth';
 
 vi.mock('@/lib/prisma', () => ({
   __esModule: true,
@@ -12,12 +13,13 @@ vi.mock('@/lib/prisma', () => ({
 const prismaMock = prisma as unknown as ReturnType<typeof mockDeep<PrismaClient>>;
 
 vi.mock('@/lib/auth', () => ({
-  getUser: vi.fn(() => Promise.resolve({ id: 'test-user-id' }))
+  getUser: vi.fn()
 }));
 
 describe('getOrCreateWorkoutLog', () => {
   beforeEach(() => {
     mockReset(prismaMock);
+    vi.mocked(getUser).mockResolvedValue({ id: 'test-user-id' } as any);
   });
 
   it('creates a new workout log if none exists today', async () => {
@@ -92,5 +94,23 @@ describe('getOrCreateWorkoutLog', () => {
 
     expect(result.data).toEqual(existingLog);
     expect(prismaMock.workoutLog.create).not.toHaveBeenCalled();
+  });
+
+  it('returns error when user is not logged in', async () => {
+    vi.mocked(getUser).mockResolvedValue(null);
+
+    const result = await getOrCreateWorkoutLog('workout-1');
+
+    expect(result).toEqual({ error: 'Unauthorized', data: null });
+    expect(prismaMock.cycle.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('returns error when there is no active cycle', async () => {
+    prismaMock.cycle.findFirst.mockResolvedValue(null);
+
+    const result = await getOrCreateWorkoutLog('workout-1');
+
+    expect(result).toEqual({ error: 'No active cycle found', data: null });
+    expect(prismaMock.workoutLog.findFirst).not.toHaveBeenCalled();
   });
 });

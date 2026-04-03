@@ -8,8 +8,6 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 model Profile {
@@ -34,9 +32,9 @@ model Program {
 model Cycle {
   id          String       @id @default(uuid())
   userId      String
-  user        Profile      @relation(fields: [userId], references: [id])
+  user        Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
   programId   String
-  program     Program      @relation(fields: [programId], references: [id])
+  program     Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
   startDate   DateTime     @default(now())
   squat1rm    Float?
   bench1rm    Float?
@@ -44,6 +42,9 @@ model Cycle {
   currentWeek Int          @default(1)
   status      String       @default("active") // active | completed
   workoutLogs WorkoutLog[]
+
+  @@index([userId])
+  @@index([programId])
 }
 
 model Exercise {
@@ -59,26 +60,30 @@ model Exercise {
 model ProgramWeek {
   id         String           @id @default(uuid())
   programId  String
-  program    Program          @relation(fields: [programId], references: [id])
+  program    Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
   weekNumber Int
   type       String // full_body|upper_lower
   workouts   ProgramWorkout[]
+
+  @@index([programId])
 }
 
 model ProgramWorkout {
   id            String            @id @default(uuid())
   programWeekId String
-  programWeek   ProgramWeek       @relation(fields: [programWeekId], references: [id])
+  programWeek   ProgramWeek       @relation(fields: [programWeekId], references: [id], onDelete: Cascade)
   dayNumber     Int
   label         String
   exercises     ProgramExercise[]
   workoutLogs   WorkoutLog[]
+
+  @@index([programWeekId])
 }
 
 model ProgramExercise {
   id               String         @id @default(uuid())
   programWorkoutId String
-  programWorkout   ProgramWorkout @relation(fields: [programWorkoutId], references: [id])
+  programWorkout   ProgramWorkout @relation(fields: [programWorkoutId], references: [id], onDelete: Cascade)
   exerciseId       String
   exercise         Exercise       @relation(fields: [exerciseId], references: [id])
   orderIndex       Int
@@ -90,14 +95,17 @@ model ProgramExercise {
   restSeconds      Int?
   notes            String?
   circuitGroup     String?
+
+  @@index([programWorkoutId])
+  @@index([exerciseId])
 }
 
 model WorkoutLog {
   id               String         @id @default(uuid())
   userId           String
-  user             Profile        @relation(fields: [userId], references: [id])
+  user             Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
   cycleId          String
-  cycle            Cycle          @relation(fields: [cycleId], references: [id])
+  cycle            Cycle          @relation(fields: [cycleId], references: [id], onDelete: Cascade)
   programWorkoutId String
   programWorkout   ProgramWorkout @relation(fields: [programWorkoutId], references: [id])
   startedAt        DateTime       @default(now())
@@ -105,12 +113,16 @@ model WorkoutLog {
   durationSeconds  Int?
   sessionRpe       Int?
   sets             SetLog[]
+
+  @@index([userId])
+  @@index([cycleId])
+  @@index([programWorkoutId])
 }
 
 model SetLog {
   id           String     @id @default(uuid())
   workoutLogId String
-  workoutLog   WorkoutLog @relation(fields: [workoutLogId], references: [id])
+  workoutLog   WorkoutLog @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
   exerciseId   String
   exercise     Exercise   @relation(fields: [exerciseId], references: [id])
   setNumber    Int
@@ -121,4 +133,7 @@ model SetLog {
   actualReps   Int?
   rpe          Float?
   completedAt  DateTime?
+
+  @@index([workoutLogId])
+  @@index([exerciseId])
 }

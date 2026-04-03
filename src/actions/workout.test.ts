@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockDeep, mockReset } from 'vitest-mock-extended';
+import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { getOrCreateWorkoutLog } from './workout';
 
-const prismaMock = vi.hoisted(() => ({
-  cycle: { findFirst: vi.fn() },
-  workoutLog: { findFirst: vi.fn(), create: vi.fn() }
+vi.mock('@/lib/prisma', () => ({
+  __esModule: true,
+  default: mockDeep<PrismaClient>(),
 }));
 
-vi.mock('@/lib/prisma', () => ({
-  default: prismaMock
-}));
+const prismaMock = prisma as unknown as ReturnType<typeof mockDeep<PrismaClient>>;
 
 vi.mock('@/lib/auth', () => ({
   getUser: vi.fn(() => Promise.resolve({ id: 'test-user-id' }))
@@ -16,7 +17,7 @@ vi.mock('@/lib/auth', () => ({
 
 describe('getOrCreateWorkoutLog', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockReset(prismaMock);
   });
 
   it('creates a new workout log if none exists today', async () => {
@@ -30,6 +31,7 @@ describe('getOrCreateWorkoutLog', () => {
       squat1rm: null,
       bench1rm: null,
       deadlift1rm: null,
+      notes: null,
     });
 
     prismaMock.workoutLog.findFirst.mockResolvedValue(null);
@@ -42,7 +44,8 @@ describe('getOrCreateWorkoutLog', () => {
       startedAt: new Date(),
       completedAt: null,
       durationSeconds: null,
-      sessionRpe: null
+      sessionRpe: null,
+      notes: null
     };
     prismaMock.workoutLog.create.mockResolvedValue(mockNewLog);
 
@@ -69,6 +72,7 @@ describe('getOrCreateWorkoutLog', () => {
       squat1rm: null,
       bench1rm: null,
       deadlift1rm: null,
+      notes: null
     });
 
     const existingLog = {
@@ -79,7 +83,8 @@ describe('getOrCreateWorkoutLog', () => {
       startedAt: new Date(),
       completedAt: null,
       durationSeconds: null,
-      sessionRpe: null
+      sessionRpe: null,
+      notes: null
     };
     prismaMock.workoutLog.findFirst.mockResolvedValue(existingLog);
 

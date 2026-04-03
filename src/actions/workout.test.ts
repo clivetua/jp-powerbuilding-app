@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockDeep, mockReset } from 'vitest-mock-extended';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import prisma from '@/lib/prisma';
 import { getOrCreateWorkoutLog } from './workout';
 import { getUser } from '@/lib/auth';
@@ -33,7 +33,6 @@ describe('getOrCreateWorkoutLog', () => {
       squat1rm: null,
       bench1rm: null,
       deadlift1rm: null,
-      notes: null,
     });
 
     prismaMock.workoutLog.findFirst.mockResolvedValue(null);
@@ -73,8 +72,7 @@ describe('getOrCreateWorkoutLog', () => {
       currentWeek: 1,
       squat1rm: null,
       bench1rm: null,
-      deadlift1rm: null,
-      notes: null
+      deadlift1rm: null
     });
 
     const existingLog = {

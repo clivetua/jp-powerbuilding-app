@@ -1,6 +1,6 @@
 import { estimateOneRepMax } from './calculations';
 
-export const BIG3_LIFTS = ['Squat', 'Bench Press', 'Deadlift'] as const;
+const BIG3_LIFTS = ['Squat', 'Bench Press', 'Deadlift'] as const;
 
 export type Big3Lift = typeof BIG3_LIFTS[number];
 

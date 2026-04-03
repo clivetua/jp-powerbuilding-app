@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { processWorkoutLogsToChartData, BIG3_LIFTS } from './progress';
+import { processWorkoutLogsToChartData } from './progress';
 
 describe('processWorkoutLogsToChartData', () => {
   it('returns empty array when no workout logs provided', () => {
@@ -305,7 +305,7 @@ describe('processWorkoutLogsToChartData', () => {
     expect(result[1].week).toBe(3);
   });
 
-  it('handles workouts with no working sets', () => {
+  it('processes warmup sets', () => {
     const workoutLogs = [
       {
         id: 'wl1',
@@ -374,13 +374,5 @@ describe('processWorkoutLogsToChartData', () => {
     expect(result[0].squat).toBeNull();
     expect(result[0].bench).toBeNull();
     expect(result[0].deadlift).toBeNull();
-  });
-});
-
-describe('BIG3_LIFTS', () => {
-  it('contains Squat, Bench Press, and Deadlift', () => {
-    expect(BIG3_LIFTS).toContain('Squat');
-    expect(BIG3_LIFTS).toContain('Bench Press');
-    expect(BIG3_LIFTS).toContain('Deadlift');
   });
 });

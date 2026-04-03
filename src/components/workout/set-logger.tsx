@@ -11,10 +11,14 @@ import { useRestTimer } from '@/components/providers/rest-timer-provider';
 
 export type ExpectedSet = {
   id?: string;
+  programExerciseId?: string;
+  exerciseId?: string;
+  exerciseName?: string;
   setNumber: number;
   setType: string;
   targetWeight?: number | null;
   targetReps?: number | null;
+  targetRpe?: number | null;
   actualWeight?: number | null;
   actualReps?: number | null;
   rpe?: number | null;
@@ -24,13 +28,13 @@ export type ExpectedSet = {
 
 type SetLoggerProps = {
   workoutLogId: string;
-  exerciseId: string;
   sets: ExpectedSet[];
 };
 
-export function SetLogger({ workoutLogId, exerciseId, sets }: SetLoggerProps) {
+export function SetLogger({ workoutLogId, sets }: SetLoggerProps) {
   const queryClient = useQueryClient();
-  const queryKey = ['workout-sets', workoutLogId, exerciseId];
+  const groupId = sets[0]?.programExerciseId ?? 'unknown-group';
+  const queryKey = ['workout-sets', workoutLogId, groupId];
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const { data: currentSets } = useQuery({
@@ -59,9 +63,9 @@ export function SetLogger({ workoutLogId, exerciseId, sets }: SetLoggerProps) {
     <div className="space-y-4">
       {displaySets.map((set, index) => (
         <SetRow
-          key={set.setNumber}
+          key={`${set.exerciseId}-${set.setNumber}`}
           workoutLogId={workoutLogId}
-          exerciseId={exerciseId}
+          exerciseId={set.exerciseId!}
           set={set}
           queryKey={queryKey}
           queryClient={queryClient}
@@ -162,9 +166,17 @@ function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient, onDone, 
   return (
     <Card className={`relative transition-colors ${isCompleted ? 'bg-muted/50 border-green-500/50' : ''}`}>
       <CardContent className="p-4 flex flex-col sm:flex-row gap-4 items-center">
-        <div className="w-full sm:w-16 font-medium text-sm text-muted-foreground shrink-0">
-          Set {set.setNumber}
-          <div className="text-xs uppercase">{set.setType}</div>
+        <div className="w-full sm:w-24 font-medium text-sm text-muted-foreground shrink-0 flex flex-col">
+          {set.exerciseName && (
+            <span className="text-xs font-bold text-primary mb-1 line-clamp-2" title={set.exerciseName}>
+              {set.exerciseName}
+            </span>
+          )}
+          <span>Set {set.setNumber}</span>
+          <span className="text-xs uppercase">{set.setType}</span>
+          {set.targetRpe != null && (
+            <span className="text-xs text-muted-foreground mt-1">@ RPE {set.targetRpe}</span>
+          )}
         </div>
 
         <div className="flex-1 grid grid-cols-3 gap-2 w-full">

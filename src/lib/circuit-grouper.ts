@@ -13,6 +13,7 @@ export interface ExerciseGroup {
 
 export interface ExpectedSet {
   programExerciseId: string;
+  exerciseId: string;
   exerciseName: string;
   setNumber: number;
   setType: 'warmup' | 'working';
@@ -94,6 +95,7 @@ export function generateCircuitSets(
       const isWarmup = i <= ex.warmupSets;
       sets.push({
         programExerciseId: ex.id,
+        exerciseId: ex.exerciseId,
         exerciseName: ex.exercise.name,
         setNumber: i,
         setType: isWarmup ? 'warmup' : 'working',

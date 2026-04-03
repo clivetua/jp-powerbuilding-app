@@ -45,7 +45,7 @@ export async function saveSetLog(data: SaveSetLogInput) {
     let isPR = false;
 
     // Only check for PR if actual weight and reps are present
-    if (savedSetLog.actualWeight && savedSetLog.actualReps && savedSetLog.actualWeight > 0 && savedSetLog.actualReps > 0) {
+    if (savedSetLog.actualWeight !== null && savedSetLog.actualWeight >= 0 && savedSetLog.actualReps && savedSetLog.actualReps > 0) {
       // Fetch previous sets for this exercise and user
       // Exclude the current set being saved/updated
       const previousSets = await prisma.setLog.findMany({

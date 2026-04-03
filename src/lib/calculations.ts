@@ -77,7 +77,7 @@ export function checkIfPR(
   const new1RM = estimateOneRepMax(newSet.weight, newSet.reps);
   
   const previous1RMs = previousSets.map(set => estimateOneRepMax(set.weight, set.reps));
-  const maxPrevious1RM = Math.max(...previous1RMs);
+  const maxPrevious1RM = previous1RMs.reduce((max, current) => Math.max(max, current), 0);
 
   return new1RM > maxPrevious1RM;
 }

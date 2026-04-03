@@ -11,6 +11,7 @@
 
 ### 1.1 — Initialize Next.js Project
 - `npx create-next-app@latest` with App Router, TypeScript, Tailwind CSS, ESLint
+- Initialize `shadcn/ui` (`npx shadcn-ui@latest init`) and add essential components (button, card, sheet, input, form)
 - Configure `tailwind.config.ts` with mobile-first breakpoints and custom theme tokens (colors, spacing for gym-friendly tap targets)
 - Add TanStack Query provider in root layout
 - Install dependencies: `@supabase/supabase-js`, `@supabase/ssr`, `@tanstack/react-query`, `recharts` (for charts later), `@prisma/client` and `prisma` (dev)

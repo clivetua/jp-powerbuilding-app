@@ -4,6 +4,7 @@ import {
   calculateWarmupPyramid,
   estimateOneRepMax,
   convertUnit,
+  checkIfPR,
 } from './calculations';
 
 describe('calculations', () => {
@@ -85,6 +86,31 @@ describe('calculations', () => {
       expect(pyramid).toEqual([
         { set: 1, weight: 15, reps: 1, label: 'Working Weight' },
       ]);
+    });
+  });
+
+  describe('checkIfPR', () => {
+    it('returns true when there are no previous sets', () => {
+      const newSet = { weight: 100, reps: 5 };
+      expect(checkIfPR(newSet, [])).toBe(true);
+    });
+
+    it('returns true when the new set has a higher estimated 1RM than all previous sets', () => {
+      const newSet = { weight: 110, reps: 5 }; // ~128.3
+      const previousSets = [
+        { weight: 100, reps: 5 }, // ~116.6
+        { weight: 105, reps: 3 }, // ~115.5
+      ];
+      expect(checkIfPR(newSet, previousSets)).toBe(true);
+    });
+
+    it('returns false when the new set has an equal or lower estimated 1RM than the best previous set', () => {
+      const newSet = { weight: 100, reps: 5 }; // ~116.6
+      const previousSets = [
+        { weight: 110, reps: 5 }, // ~128.3
+        { weight: 100, reps: 5 }, // ~116.6
+      ];
+      expect(checkIfPR(newSet, previousSets)).toBe(false);
     });
   });
 });

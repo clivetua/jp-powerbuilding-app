@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { saveSetLog, SaveSetLogInput } from '@/actions/set-logs';
 import { Check } from 'lucide-react';
 import { useRestTimer } from '@/components/providers/rest-timer-provider';
+import { toast } from 'sonner';
 
 export type ExpectedSet = {
   id?: string;
@@ -137,6 +138,12 @@ function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient, onDone, 
     },
     onSuccess: (res, newSetData) => {
       if (res.data) {
+        if ('isPR' in res.data && res.data.isPR) {
+          toast.success("🎉 Personal Record!", {
+            description: "You've hit a new estimated 1RM PR for this exercise!",
+          });
+        }
+        
         queryClient.setQueryData<ExpectedSet[]>(queryKey, (old) => {
           if (!old) return old;
           return old.map((s) =>

@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { RestTimerProvider } from "@/components/providers/rest-timer-provider";
 import { RestTimer } from "@/components/workout/rest-timer";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +35,7 @@ export default function RootLayout({
           <RestTimerProvider>
             {children}
             <RestTimer />
+            <Toaster />
           </RestTimerProvider>
         </QueryProvider>
       </body>

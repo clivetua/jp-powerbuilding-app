@@ -65,3 +65,19 @@ export function calculateWarmupPyramid(
 
   return pyramid;
 }
+
+export function checkIfPR(
+  newSet: { weight: number; reps: number },
+  previousSets: Array<{ weight: number; reps: number }>
+): boolean {
+  if (previousSets.length === 0) {
+    return true;
+  }
+
+  const new1RM = estimateOneRepMax(newSet.weight, newSet.reps);
+  
+  const previous1RMs = previousSets.map(set => estimateOneRepMax(set.weight, set.reps));
+  const maxPrevious1RM = Math.max(...previous1RMs);
+
+  return new1RM > maxPrevious1RM;
+}

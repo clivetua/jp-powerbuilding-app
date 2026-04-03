@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useMutation, useQueryClient, QueryClient } from '@tanstack/react-query';
+import React, { useState, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient, QueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,18 +29,46 @@ type SetLoggerProps = {
 export function SetLogger({ workoutLogId, exerciseId, sets }: SetLoggerProps) {
   const queryClient = useQueryClient();
   const queryKey = ['workout-sets', workoutLogId, exerciseId];
+  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const { data: currentSets } = useQuery({
+    queryKey,
+    queryFn: () => sets,
+    initialData: sets,
+    staleTime: Infinity,
+  });
+
+  const displaySets = currentSets ?? sets;
+
+  const handleSetDone = (index: number) => {
+    setTimeout(() => {
+      const nextIndex = index + 1;
+      if (nextIndex < displaySets.length) {
+        const nextRow = rowRefs.current[nextIndex];
+        if (nextRow) {
+          nextRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const firstInput = nextRow.querySelector('input');
+          if (firstInput) {
+            firstInput.focus();
+          }
+        }
+      }
+    }, 0);
+  };
 
   return (
     <div className="space-y-4">
-      {sets.map((set) => (
-        <SetRow
-          key={set.setNumber}
-          workoutLogId={workoutLogId}
-          exerciseId={exerciseId}
-          set={set}
-          queryKey={queryKey}
-          queryClient={queryClient}
-        />
+      {displaySets.map((set, index) => (
+        <div key={set.setNumber} ref={(el) => { rowRefs.current[index] = el; }}>
+          <SetRow
+            workoutLogId={workoutLogId}
+            exerciseId={exerciseId}
+            set={set}
+            queryKey={queryKey}
+            queryClient={queryClient}
+            onDone={() => handleSetDone(index)}
+          />
+        </div>
       ))}
     </div>
   );
@@ -50,11 +78,12 @@ type SetRowProps = {
   workoutLogId: string;
   exerciseId: string;
   set: ExpectedSet;
-  queryKey: any[];
+  queryKey: string[];
   queryClient: QueryClient;
+  onDone?: () => void;
 };
 
-function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient }: SetRowProps) {
+function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient, onDone }: SetRowProps) {
   const [weight, setWeight] = useState(set.actualWeight?.toString() ?? set.targetWeight?.toString() ?? '');
   const [reps, setReps] = useState(set.actualReps?.toString() ?? set.targetReps?.toString() ?? '');
   const [rpe, setRpe] = useState(set.rpe?.toString() ?? '');
@@ -89,7 +118,7 @@ function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient }: SetRow
       // Return a context object with the snapshotted value
       return { previousSets };
     },
-    onError: (err, newSetData, context: any) => {
+    onError: (err, newSetData, context: { previousSets?: ExpectedSet[] } | undefined) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousSets) {
         queryClient.setQueryData(queryKey, context.previousSets);
@@ -108,10 +137,13 @@ function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient }: SetRow
       exerciseId,
       setNumber: set.setNumber,
       setType: set.setType,
+      targetWeight: set.targetWeight,
+      targetReps: set.targetReps,
       actualWeight: weight ? parseFloat(weight) : null,
       actualReps: reps ? parseInt(reps, 10) : null,
       rpe: rpe ? parseFloat(rpe) : null,
     });
+    onDone?.();
   };
 
   return (

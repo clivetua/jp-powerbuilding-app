@@ -6,6 +6,7 @@ import { groupExercises, generateCircuitSets } from '@/lib/circuit-grouper';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Activity, Target } from 'lucide-react';
 import { SetLogger } from '@/components/workout/set-logger';
+import { FinishWorkoutButton } from '@/components/workout/finish-workout-button';
 
 interface ActiveWorkoutPageProps {
   params: Promise<{
@@ -152,6 +153,8 @@ export default async function ActiveWorkoutPage({ params }: ActiveWorkoutPagePro
           }
         })}
       </div>
+
+      <FinishWorkoutButton workoutLogId={workoutLog.id} workoutId={workoutId} />
     </div>
   );
 }

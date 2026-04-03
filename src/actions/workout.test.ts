@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockDeep, mockReset } from 'vitest-mock-extended';
 import { PrismaClient } from '@/generated/prisma/client';
 import prisma from '@/lib/prisma';
-import { getOrCreateWorkoutLog } from './workout';
+import { getOrCreateWorkoutLog, finishWorkout, saveWorkoutSummary } from './workout';
 import { getUser } from '@/lib/auth';
 
 vi.mock('@/lib/prisma', () => ({
@@ -110,5 +110,153 @@ describe('getOrCreateWorkoutLog', () => {
 
     expect(result).toEqual({ error: 'No active cycle found', data: null });
     expect(prismaMock.workoutLog.findFirst).not.toHaveBeenCalled();
+  });
+});
+
+describe('finishWorkout', () => {
+  beforeEach(() => {
+    mockReset(prismaMock);
+    vi.mocked(getUser).mockResolvedValue({ id: 'test-user-id' } as any);
+  });
+
+  it('updates workout log with completedAt and durationSeconds', async () => {
+    const startedAt = new Date(Date.now() - 3600000); // 1 hour ago
+    prismaMock.workoutLog.findUnique.mockResolvedValue({
+      id: 'log-1',
+      userId: 'test-user-id',
+      cycleId: 'cycle-1',
+      programWorkoutId: 'workout-1',
+      startedAt,
+      completedAt: null,
+      durationSeconds: null,
+      sessionRpe: null,
+      notes: null,
+    });
+
+    const updatedLog = {
+      id: 'log-1',
+      userId: 'test-user-id',
+      cycleId: 'cycle-1',
+      programWorkoutId: 'workout-1',
+      startedAt,
+      completedAt: new Date(),
+      durationSeconds: 3600,
+      sessionRpe: null,
+      notes: null,
+    };
+    prismaMock.workoutLog.update.mockResolvedValue(updatedLog);
+
+    // Mock Date.now to have predictable duration
+    vi.setSystemTime(startedAt.getTime() + 3600000);
+
+    const result = await finishWorkout('log-1');
+
+    expect(result.error).toBeNull();
+    expect(result.data).toEqual(updatedLog);
+    expect(prismaMock.workoutLog.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'log-1' },
+      data: expect.objectContaining({
+        completedAt: expect.any(Date),
+        durationSeconds: 3600
+      })
+    }));
+
+    vi.useRealTimers();
+  });
+
+  it('returns error when log does not exist', async () => {
+    prismaMock.workoutLog.findUnique.mockResolvedValue(null);
+
+    const result = await finishWorkout('log-1');
+
+    expect(result).toEqual({ error: 'Workout log not found', data: null });
+    expect(prismaMock.workoutLog.update).not.toHaveBeenCalled();
+  });
+
+  it('returns error when user is not authorized', async () => {
+    vi.mocked(getUser).mockResolvedValue(null);
+
+    const result = await finishWorkout('log-1');
+
+    expect(result).toEqual({ error: 'Unauthorized', data: null });
+  });
+
+  it('returns error when user does not own the log', async () => {
+    prismaMock.workoutLog.findUnique.mockResolvedValue({
+      id: 'log-1',
+      userId: 'other-user',
+      cycleId: 'cycle-1',
+      programWorkoutId: 'workout-1',
+      startedAt: new Date(),
+      completedAt: null,
+      durationSeconds: null,
+      sessionRpe: null,
+      notes: null,
+    });
+
+    const result = await finishWorkout('log-1');
+
+    expect(result).toEqual({ error: 'Workout log not found', data: null });
+  });
+});
+
+describe('saveWorkoutSummary', () => {
+  beforeEach(() => {
+    mockReset(prismaMock);
+    vi.mocked(getUser).mockResolvedValue({ id: 'test-user-id' } as any);
+  });
+
+  it('updates workout log with session RPE', async () => {
+    prismaMock.workoutLog.findUnique.mockResolvedValue({
+      id: 'log-1',
+      userId: 'test-user-id',
+      cycleId: 'cycle-1',
+      programWorkoutId: 'workout-1',
+      startedAt: new Date(),
+      completedAt: new Date(),
+      durationSeconds: 3600,
+      sessionRpe: null,
+      notes: null,
+    });
+
+    const updatedLog = {
+      id: 'log-1',
+      userId: 'test-user-id',
+      cycleId: 'cycle-1',
+      programWorkoutId: 'workout-1',
+      startedAt: new Date(),
+      completedAt: new Date(),
+      durationSeconds: 3600,
+      sessionRpe: 8,
+      notes: null,
+    };
+    prismaMock.workoutLog.update.mockResolvedValue(updatedLog);
+
+    const result = await saveWorkoutSummary('log-1', 8);
+
+    expect(result.error).toBeNull();
+    expect(result.data).toEqual(updatedLog);
+    expect(prismaMock.workoutLog.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'log-1' },
+      data: expect.objectContaining({
+        sessionRpe: 8
+      })
+    }));
+  });
+
+  it('returns error when user is not authorized', async () => {
+    vi.mocked(getUser).mockResolvedValue(null);
+
+    const result = await saveWorkoutSummary('log-1', 8);
+
+    expect(result).toEqual({ error: 'Unauthorized', data: null });
+  });
+
+  it('returns error when log does not exist', async () => {
+    prismaMock.workoutLog.findUnique.mockResolvedValue(null);
+
+    const result = await saveWorkoutSummary('log-1', 8);
+
+    expect(result).toEqual({ error: 'Workout log not found', data: null });
   });
 });

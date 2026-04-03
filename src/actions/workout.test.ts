@@ -130,7 +130,6 @@ describe('finishWorkout', () => {
       completedAt: null,
       durationSeconds: null,
       sessionRpe: null,
-      notes: null,
     });
 
     const updatedLog = {
@@ -142,7 +141,6 @@ describe('finishWorkout', () => {
       completedAt: new Date(),
       durationSeconds: 3600,
       sessionRpe: null,
-      notes: null,
     };
     prismaMock.workoutLog.update.mockResolvedValue(updatedLog);
 
@@ -191,7 +189,6 @@ describe('finishWorkout', () => {
       completedAt: null,
       durationSeconds: null,
       sessionRpe: null,
-      notes: null,
     });
 
     const result = await finishWorkout('log-1');
@@ -216,7 +213,6 @@ describe('saveWorkoutSummary', () => {
       completedAt: new Date(),
       durationSeconds: 3600,
       sessionRpe: null,
-      notes: null,
     });
 
     const updatedLog = {
@@ -228,7 +224,6 @@ describe('saveWorkoutSummary', () => {
       completedAt: new Date(),
       durationSeconds: 3600,
       sessionRpe: 8,
-      notes: null,
     };
     prismaMock.workoutLog.update.mockResolvedValue(updatedLog);
 

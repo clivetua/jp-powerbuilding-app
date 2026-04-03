@@ -84,7 +84,7 @@ export function LoginForm() {
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/signup" className="text-primary hover:underline">
             Sign up
           </Link>

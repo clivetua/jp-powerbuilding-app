@@ -11,7 +11,7 @@ A mobile-first web app that guides users through Jeff Nippard's Powerbuilding Sy
 ## Tech Stack
 
 - **Frontend:** Next.js (App Router), TanStack Query, Tailwind CSS
-- **Backend/DB:** Supabase (Postgres, Auth, Row Level Security)
+- **Backend/DB:** Next.js Server Actions, Prisma ORM, Supabase (Postgres)
 - **Auth:** Supabase Auth (email/password + Google OAuth)
 - **Deployment:** Vercel (assumed, natural fit for Next.js)
 

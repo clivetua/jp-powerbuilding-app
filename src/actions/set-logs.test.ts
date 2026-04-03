@@ -9,6 +9,10 @@ vi.mock('@/lib/prisma', () => ({
   default: mockDeep<PrismaClient>(),
 }));
 
+vi.mock('@/lib/auth', () => ({
+  getUser: vi.fn().mockResolvedValue({ id: 'user-1' }),
+}));
+
 const prismaMock = prisma as unknown as ReturnType<typeof mockDeep<PrismaClient>>;
 
 describe('saveSetLog', () => {
@@ -32,6 +36,7 @@ describe('saveSetLog', () => {
     };
     
     prismaMock.setLog.create.mockResolvedValue(mockNewSetLog);
+    prismaMock.setLog.findMany.mockResolvedValue([]);
 
     const inputData = {
       workoutLogId: 'wlog-1',
@@ -47,7 +52,7 @@ describe('saveSetLog', () => {
 
     const result = await saveSetLog(inputData);
 
-    expect(result.data).toEqual(mockNewSetLog);
+    expect(result.data).toEqual({ ...mockNewSetLog, isPR: true });
     expect(prismaMock.setLog.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         ...inputData,
@@ -72,6 +77,7 @@ describe('saveSetLog', () => {
     };
     
     prismaMock.setLog.update.mockResolvedValue(mockUpdatedSetLog);
+    prismaMock.setLog.findMany.mockResolvedValue([]);
 
     const inputData = {
       id: 'existing-id',
@@ -86,7 +92,7 @@ describe('saveSetLog', () => {
 
     const result = await saveSetLog(inputData);
 
-    expect(result.data).toEqual(mockUpdatedSetLog);
+    expect(result.data).toEqual({ ...mockUpdatedSetLog, isPR: true });
     expect(prismaMock.setLog.update).toHaveBeenCalledWith({
       where: { id: 'existing-id' },
       data: expect.objectContaining({

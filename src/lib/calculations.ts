@@ -74,6 +74,15 @@ export function checkIfPR(
     return true;
   }
 
+  if (newSet.weight === 0) {
+    const previousBodyweightSets = previousSets.filter(set => set.weight === 0);
+    if (previousBodyweightSets.length === 0) {
+      return true;
+    }
+    const maxPreviousReps = previousBodyweightSets.reduce((max, set) => Math.max(max, set.reps), 0);
+    return newSet.reps > maxPreviousReps;
+  }
+
   const new1RM = estimateOneRepMax(newSet.weight, newSet.reps);
   
   const previous1RMs = previousSets.map(set => estimateOneRepMax(set.weight, set.reps));

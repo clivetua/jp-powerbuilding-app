@@ -75,6 +75,10 @@ export async function finishWorkout(workoutLogId: string) {
       return { error: 'Workout log not found', data: null };
     }
 
+    if (log.completedAt) {
+      return { error: null, data: log };
+    }
+
     const completedAt = new Date();
     const durationSeconds = Math.floor((completedAt.getTime() - log.startedAt.getTime()) / 1000);
 
@@ -96,6 +100,10 @@ export async function finishWorkout(workoutLogId: string) {
 
 export async function saveWorkoutSummary(workoutLogId: string, sessionRpe: number) {
   try {
+    if (sessionRpe < 1 || sessionRpe > 10) {
+      return { error: 'Invalid RPE', data: null };
+    }
+
     const user = await getUser();
     if (!user) {
       return { error: 'Unauthorized', data: null };

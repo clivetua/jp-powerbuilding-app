@@ -45,7 +45,12 @@ export default function OnboardingForm() {
     setIsPending(true);
     setError(null);
     try {
-      await submitOnboarding(values);
+      const res = await submitOnboarding(values);
+      if (res?.error) {
+        setError(res.error);
+        setIsPending(false);
+        return;
+      }
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
       setIsPending(false);

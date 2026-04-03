@@ -5,26 +5,31 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+const optional1RM = z.preprocess(
+  (val) => (val === "" || val === null ? undefined : val),
+  z.coerce.number().min(0).optional()
+);
+
 export const onboardingSchema = z.object({
   displayName: z.string().min(1, "Display name is required"),
   unitPref: z.enum(["kg", "lb"]),
-  squat1rm: z.union([z.coerce.number().min(0), z.literal("")]).optional().transform((e) => (e === "" ? undefined : e)),
-  bench1rm: z.union([z.coerce.number().min(0), z.literal("")]).optional().transform((e) => (e === "" ? undefined : e)),
-  deadlift1rm: z.union([z.coerce.number().min(0), z.literal("")]).optional().transform((e) => (e === "" ? undefined : e)),
+  squat1rm: optional1RM,
+  bench1rm: optional1RM,
+  deadlift1rm: optional1RM,
 });
 
 export async function submitOnboarding(data: z.infer<typeof onboardingSchema>) {
   const user = await getUser();
   if (!user) {
-    throw new Error("Unauthorized");
+    return { error: "Unauthorized" };
   }
 
   const parsed = onboardingSchema.parse(data);
 
   // Get the first program (Jeff Nippard)
-  const program = await prisma.program.findFirst();
+  const program = await prisma.program.findFirst({ orderBy: { id: "asc" } });
   if (!program) {
-    throw new Error("No program found. Please seed the database.");
+    return { error: "No program found. Please seed the database." };
   }
 
   // Create Profile and Cycle in a transaction

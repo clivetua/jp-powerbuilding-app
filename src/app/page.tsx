@@ -3,8 +3,10 @@ import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { CheckCircle, Circle, Play, Activity, CalendarDays } from 'lucide-react';
+import { LocalTime } from '@/components/ui/local-time';
+import { ProgramWorkout } from '@/generated/prisma/client';
 
 export default async function Home() {
   const user = await getUser();
@@ -21,17 +23,33 @@ export default async function Home() {
     redirect('/onboarding');
   }
 
-  // 1. Fetch active cycle
-  const activeCycle = await prisma.cycle.findFirst({
-    where: { userId: user.id, status: 'active' },
-    include: {
-      program: true,
-    }
-  });
+  // 1 & 4. Fetch active cycle and recent history concurrently
+  const [activeCycle, recentLogs] = await Promise.all([
+    prisma.cycle.findFirst({
+      where: { userId: user.id, status: 'active' },
+      include: {
+        program: true,
+      }
+    }),
+    prisma.workoutLog.findMany({
+      where: { userId: user.id, completedAt: { not: null } },
+      orderBy: { completedAt: 'desc' },
+      take: 3,
+      include: {
+        programWorkout: {
+          include: {
+            programWeek: {
+              include: { program: true }
+            }
+          }
+        }
+      }
+    })
+  ]);
 
   let programWeek = null;
-  let weekWorkouts: any[] = [];
-  let nextWorkout: any = null;
+  let weekWorkouts: ProgramWorkout[] = [];
+  let nextWorkout: ProgramWorkout | null = null;
   let completedWorkoutIds: string[] = [];
 
   if (activeCycle) {
@@ -53,32 +71,15 @@ export default async function Home() {
       
       // 3. Find completed workouts this cycle to see what's done
       const cycleLogs = await prisma.workoutLog.findMany({
-        where: { cycleId: activeCycle.id },
+        where: { cycleId: activeCycle.id, completedAt: { not: null } },
+        select: { programWorkoutId: true }
       });
       
-      completedWorkoutIds = cycleLogs
-        .filter(log => log.completedAt !== null)
-        .map(log => log.programWorkoutId);
+      completedWorkoutIds = cycleLogs.map(log => log.programWorkoutId);
         
       nextWorkout = weekWorkouts.find(w => !completedWorkoutIds.includes(w.id)) || null;
     }
   }
-
-  // 4. Fetch recent history (last 3 sessions)
-  const recentLogs = await prisma.workoutLog.findMany({
-    where: { userId: user.id, completedAt: { not: null } },
-    orderBy: { completedAt: 'desc' },
-    take: 3,
-    include: {
-      programWorkout: {
-        include: {
-          programWeek: {
-            include: { program: true }
-          }
-        }
-      }
-    }
-  });
 
   return (
     <div className="flex flex-col flex-1 pb-28 bg-zinc-50 dark:bg-black min-h-screen">
@@ -156,7 +157,6 @@ export default async function Home() {
           {recentLogs.length > 0 ? (
             <div className="space-y-3">
               {recentLogs.map(log => {
-                const date = log.completedAt ? new Date(log.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
                 const workoutName = log.programWorkout.label;
                 const programName = log.programWorkout.programWeek.program.name;
                 const weekNum = log.programWorkout.programWeek.weekNumber;
@@ -170,7 +170,7 @@ export default async function Home() {
                         <p className="text-xs text-muted-foreground">{programName} - W{weekNum}D{dayNum}</p>
                       </div>
                       <div className="text-sm font-medium text-muted-foreground">
-                        {date}
+                        {log.completedAt && <LocalTime date={log.completedAt} />}
                       </div>
                     </CardContent>
                   </Card>

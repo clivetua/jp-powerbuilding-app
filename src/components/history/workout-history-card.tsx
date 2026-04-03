@@ -81,7 +81,7 @@ export function WorkoutHistoryCard({ workout }: WorkoutHistoryCardProps) {
                               : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                           }`}
                         >
-                          {set.setType === 'warmup' ? 'W' : 'W'}
+                          {set.setType === 'warmup' ? 'W' : 'WK'}
                         </span>
                       </div>
                       <div className="flex items-center gap-3">

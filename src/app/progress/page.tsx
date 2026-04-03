@@ -68,9 +68,9 @@ function LiftChart({
   const config = LIFT_CONFIG[liftKey];
   const prPoints: { x: number; y: number }[] = [];
 
-  const chartDataWithIndex = data.map((d, i) => ({
+  const chartDataWithIndex = data.map((d) => ({
     ...d,
-    index: i + 1,
+    index: d.week,
     [`${liftKey}PR`]: d[`${liftKey}PR` as 'squatPR' | 'benchPR' | 'deadliftPR'],
   }));
 

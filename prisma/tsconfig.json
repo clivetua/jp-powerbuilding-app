@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS",
+      "moduleResolution": "Node",
+      "esModuleInterop": true
+    }
+  }
+}

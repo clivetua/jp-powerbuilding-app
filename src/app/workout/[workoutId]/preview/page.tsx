@@ -135,7 +135,7 @@ export default async function WorkoutPreviewPage({
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground font-medium uppercase">Protocol</p>
                       <p className="font-semibold text-sm">
-                        {progEx.workingSets} sets × {progEx.targetReps}
+                        {progEx.workingSets} sets × {progEx.targetReps || 'max'}
                       </p>
                     </div>
                     <div className="space-y-1">
@@ -144,10 +144,13 @@ export default async function WorkoutPreviewPage({
                         <Target className="w-4 h-4" />
                         {targetWeight ? (
                           <span>{targetWeight} {unitPref}</span>
-                        ) : progEx.targetRpe ? (
-                          <span>RPE {progEx.targetRpe}</span>
-                        ) : (
+                        ) : !progEx.targetRpe ? (
                           <span>-</span>
+                        ) : null}
+                        {progEx.targetRpe && (
+                          <span className={targetWeight ? "text-xs font-medium ml-1" : ""}>
+                            {targetWeight ? "@ " : ""}RPE {progEx.targetRpe}
+                          </span>
                         )}
                         {progEx.percent1rm && (
                           <span className="text-xs text-muted-foreground font-normal ml-1">

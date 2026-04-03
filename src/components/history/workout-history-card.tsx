@@ -1,10 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronDown, ChevronUp, Clock, Dumbbell } from 'lucide-react';
 import { formatDuration, WorkoutHistoryItem } from '@/lib/history';
 import { LocalTime } from '@/components/ui/local-time';
+
+const SET_TYPE_LABELS = {
+  warmup: 'W',
+  working: 'WK',
+} as const;
+
+const SET_TYPE_STYLES = {
+  warmup: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  working: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+} as const;
+
+function getSetTypeInfo(setType: string): { label: string; className: string } {
+  const isWarmup = setType === 'warmup';
+  return {
+    label: isWarmup ? SET_TYPE_LABELS.warmup : SET_TYPE_LABELS.working,
+    className: isWarmup ? SET_TYPE_STYLES.warmup : SET_TYPE_STYLES.working,
+  };
+}
 
 interface WorkoutHistoryCardProps {
   workout: WorkoutHistoryItem;
@@ -13,14 +31,16 @@ interface WorkoutHistoryCardProps {
 export function WorkoutHistoryCard({ workout }: WorkoutHistoryCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const groupedSets = workout.sets.reduce((acc, set) => {
-    const exerciseName = set.exercise.name;
-    if (!acc[exerciseName]) {
-      acc[exerciseName] = [];
-    }
-    acc[exerciseName].push(set);
-    return acc;
-  }, {} as Record<string, WorkoutHistoryItem['sets']>);
+  const groupedSets = useMemo(() => {
+    return workout.sets.reduce((acc, set) => {
+      const exerciseName = set.exercise.name;
+      if (!acc[exerciseName]) {
+        acc[exerciseName] = [];
+      }
+      acc[exerciseName].push(set);
+      return acc;
+    }, {} as Record<string, WorkoutHistoryItem['sets']>);
+  }, [workout.sets]);
 
   return (
     <Card
@@ -65,39 +85,36 @@ export function WorkoutHistoryCard({ workout }: WorkoutHistoryCardProps) {
               <div key={exerciseName}>
                 <p className="font-medium text-sm mb-2">{exerciseName}</p>
                 <div className="space-y-1">
-                  {sets.map((set) => (
-                    <div
-                      key={set.id}
-                      className="flex items-center justify-between text-sm bg-muted/30 rounded px-3 py-2"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-muted-foreground w-6">
-                          {set.setNumber}
-                        </span>
-                        <span
-                          className={`text-xs px-1.5 py-0.5 rounded ${
-                            set.setType === 'warmup'
-                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                          }`}
-                        >
-                          {set.setType === 'warmup' ? 'W' : 'WK'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span>
-                          {set.actualWeight !== null
-                            ? `${set.actualWeight} kg × ${set.actualReps ?? '-'}`
-                            : '—'}
-                        </span>
-                        {set.rpe !== null && (
-                          <span className="text-xs text-muted-foreground">
-                            RPE {set.rpe}
+                  {sets.map((set) => {
+                    const { label, className } = getSetTypeInfo(set.setType);
+                    return (
+                      <div
+                        key={set.id}
+                        className="flex items-center justify-between text-sm bg-muted/30 rounded px-3 py-2"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-muted-foreground w-6">
+                            {set.setNumber}
                           </span>
-                        )}
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${className}`}>
+                            {label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span>
+                            {set.actualWeight !== null
+                              ? `${set.actualWeight} kg × ${set.actualReps ?? '-'}`
+                              : '—'}
+                          </span>
+                          {set.rpe !== null && (
+                            <span className="text-xs text-muted-foreground">
+                              RPE {set.rpe}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

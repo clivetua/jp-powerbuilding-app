@@ -44,6 +44,7 @@ export default async function WorkoutSummaryPage({ params }: WorkoutSummaryPageP
 
   // Calculate stats
   const completedSets = workoutLog.sets.length;
+  const uniqueExercises = new Set(workoutLog.sets.map(s => s.exerciseId)).size;
   const totalVolume = workoutLog.sets.reduce((acc, set) => {
     return acc + ((set.actualWeight || 0) * (set.actualReps || 0));
   }, 0);
@@ -71,8 +72,8 @@ export default async function WorkoutSummaryPage({ params }: WorkoutSummaryPageP
         <Card>
           <CardContent className="pt-6 flex flex-col items-center justify-center text-center">
             <Dumbbell className="w-8 h-8 text-green-500 mb-2" />
-            <div className="text-2xl font-bold">{completedSets}</div>
-            <div className="text-xs text-muted-foreground uppercase">Sets Done</div>
+            <div className="text-2xl font-bold">{uniqueExercises}</div>
+            <div className="text-xs text-muted-foreground uppercase">Exercises</div>
           </CardContent>
         </Card>
 

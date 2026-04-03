@@ -1,0 +1,139 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model Profile {
+  id          String       @id // FK to auth.users
+  displayName String?
+  unitPref    String       @default("kg") // kg or lb
+  bodyWeight  Float?
+  cycles      Cycle[]
+  workoutLogs WorkoutLog[]
+}
+
+model Program {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  totalWeeks  Int
+  daysPerWeek Int
+  cycles      Cycle[]
+  weeks       ProgramWeek[]
+}
+
+model Cycle {
+  id          String       @id @default(uuid())
+  userId      String
+  user        Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programId   String
+  program     Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
+  startDate   DateTime     @default(now())
+  squat1rm    Float?
+  bench1rm    Float?
+  deadlift1rm Float?
+  currentWeek Int          @default(1)
+  status      String       @default("active") // active | completed
+  workoutLogs WorkoutLog[]
+
+  @@index([userId])
+  @@index([programId])
+}
+
+model Exercise {
+  id               String            @id @default(uuid())
+  name             String
+  muscleGroup      String?
+  category         String? // primary|secondary|tertiary
+  demoVideoUrl     String?
+  programExercises ProgramExercise[]
+  setLogs          SetLog[]
+}
+
+model ProgramWeek {
+  id         String           @id @default(uuid())
+  programId  String
+  program    Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
+  weekNumber Int
+  type       String // full_body|upper_lower
+  workouts   ProgramWorkout[]
+
+  @@index([programId])
+}
+
+model ProgramWorkout {
+  id            String            @id @default(uuid())
+  programWeekId String
+  programWeek   ProgramWeek       @relation(fields: [programWeekId], references: [id], onDelete: Cascade)
+  dayNumber     Int
+  label         String
+  exercises     ProgramExercise[]
+  workoutLogs   WorkoutLog[]
+
+  @@index([programWeekId])
+}
+
+model ProgramExercise {
+  id               String         @id @default(uuid())
+  programWorkoutId String
+  programWorkout   ProgramWorkout @relation(fields: [programWorkoutId], references: [id], onDelete: Cascade)
+  exerciseId       String
+  exercise         Exercise       @relation(fields: [exerciseId], references: [id])
+  orderIndex       Int
+  warmupSets       Int
+  workingSets      Int
+  targetReps       String?
+  percent1rm       Float?
+  targetRpe        Int?
+  restSeconds      Int?
+  notes            String?
+  circuitGroup     String?
+
+  @@index([programWorkoutId])
+  @@index([exerciseId])
+}
+
+model WorkoutLog {
+  id               String         @id @default(uuid())
+  userId           String
+  user             Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cycleId          String
+  cycle            Cycle          @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  programWorkoutId String
+  programWorkout   ProgramWorkout @relation(fields: [programWorkoutId], references: [id])
+  startedAt        DateTime       @default(now())
+  completedAt      DateTime?
+  durationSeconds  Int?
+  sessionRpe       Int?
+  sets             SetLog[]
+
+  @@index([userId])
+  @@index([cycleId])
+  @@index([programWorkoutId])
+}
+
+model SetLog {
+  id           String     @id @default(uuid())
+  workoutLogId String
+  workoutLog   WorkoutLog @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
+  exerciseId   String
+  exercise     Exercise   @relation(fields: [exerciseId], references: [id])
+  setNumber    Int
+  setType      String // warmup|working
+  targetWeight Float?
+  actualWeight Float?
+  targetReps   Int?
+  actualReps   Int?
+  rpe          Float?
+  completedAt  DateTime?
+
+  @@index([workoutLogId])
+  @@index([exerciseId])
+}

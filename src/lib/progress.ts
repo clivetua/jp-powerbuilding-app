@@ -241,7 +241,7 @@ export function processWorkoutLogsToVolumeData(
     for (const set of workoutLog.sets) {
       const weight = set.actualWeight;
       const reps = set.actualReps;
-      const muscleGroup = set.exercise.muscleGroup ?? 'null';
+      const muscleGroup = set.exercise.muscleGroup ?? 'Uncategorized';
 
       if (weight === null || reps === null) {
         continue;
@@ -332,8 +332,6 @@ export function generateProgramTimelineData(
       } else if (!foundCurrent && weekNum === currentWeek) {
         status = 'current';
         foundCurrent = true;
-      } else if (weekNum < currentWeek) {
-        status = 'upcoming';
       } else {
         status = 'upcoming';
       }

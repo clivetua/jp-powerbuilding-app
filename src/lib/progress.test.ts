@@ -712,7 +712,8 @@ describe('processWorkoutLogsToVolumeData', () => {
     const result = processWorkoutLogsToVolumeData(volumeWorkoutLogs);
 
     expect(result[0].weekOverWeek).toBeNull(); // First week has no previous
-    // Week 2 total (970) vs Week 1 total (1140): (970 - 1140) / 1140 = -0.149
+    // Week 2 total (970) vs Week 1 total (1140): (970 - 1140) / 1140 = -0.1491...
+    // toBeCloseTo(-0.149, 2) checks value is within 0.01 of -0.149 (i.e., [-0.159, -0.139])
     expect(result[1].weekOverWeek).toBeCloseTo(-0.149, 2);
   });
 
@@ -748,6 +749,6 @@ describe('processWorkoutLogsToVolumeData', () => {
 
     const result = processWorkoutLogsToVolumeData(logs);
 
-    expect(result[0].muscleGroups['null']).toBe(500);
+    expect(result[0].muscleGroups['Uncategorized']).toBe(500);
   });
 });

@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+import type { VolumeChartData } from '@/lib/progress';
 
 const MUSCLE_GROUP_COLORS: Record<string, string> = {
   Chest: '#ef4444',
@@ -20,15 +21,22 @@ const MUSCLE_GROUP_COLORS: Record<string, string> = {
   Shoulders: '#f59e0b',
   Arms: '#8b5cf6',
   Core: '#ec4899',
-  null: '#6b7280',
+  Uncategorized: '#6b7280',
 };
 
-type VolumeChartData = {
-  week: number;
-  muscleGroups: Record<string, number>;
-  totalVolume: number;
-  weekOverWeek: number | null;
-};
+function formatTonnage(value: number): string {
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(1)}t`;
+  }
+  return `${value}kg`;
+}
+
+function formatTonnageWithLocale(value: number): string {
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(2)}t`;
+  }
+  return `${value.toLocaleString()}kg`;
+}
 
 type VolumeChartProps = {
   data: VolumeChartData[];
@@ -47,13 +55,6 @@ export function VolumeChart({ data }: VolumeChartProps) {
     }
   }
   const sortedMuscleGroups = Array.from(allMuscleGroups).sort();
-
-  const formatTonnage = (value: number) => {
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}t`;
-    }
-    return `${value}kg`;
-  };
 
   const formatTooltipTonnage = (value: number) => {
     return `${value.toLocaleString()} kg`;
@@ -95,7 +96,7 @@ export function VolumeChart({ data }: VolumeChartProps) {
                 <Bar
                   key={mg}
                   dataKey={`muscleGroups.${mg}`}
-                  name={mg === 'null' ? 'Uncategorized' : mg}
+                  name={mg === 'Uncategorized' ? 'Uncategorized' : mg}
                   fill={MUSCLE_GROUP_COLORS[mg] ?? '#6b7280'}
                   stackId="volume"
                 />
@@ -119,13 +120,6 @@ export function VolumeSummary({ data }: VolumeSummaryProps) {
 
   const currentWeek = data[data.length - 1];
   const previousWeek = data.length > 1 ? data[data.length - 2] : null;
-
-  const formatTonnage = (value: number) => {
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(2)}t`;
-    }
-    return `${value.toLocaleString()}kg`;
-  };
 
   const formatPercent = (value: number) => {
     const sign = value >= 0 ? '+' : '';
@@ -189,15 +183,8 @@ export function MuscleGroupBreakdown({ data }: MuscleGroupBreakdownProps) {
 
   const currentWeek = data[data.length - 1];
   const muscleGroups = Object.entries(currentWeek.muscleGroups)
-    .filter(([key]) => key !== 'null')
+    .filter(([key]) => key !== 'Uncategorized')
     .sort((a, b) => b[1] - a[1]);
-
-  const formatTonnage = (value: number) => {
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(2)}t`;
-    }
-    return `${value.toLocaleString()}kg`;
-  };
 
   return (
     <Card>
@@ -218,7 +205,7 @@ export function MuscleGroupBreakdown({ data }: MuscleGroupBreakdownProps) {
                 <span className="text-sm">{group}</span>
               </div>
               <div className="text-sm font-medium">
-                {formatTonnage(volume)}
+                {formatTonnageWithLocale(volume)}
                 <span className="text-xs text-muted-foreground ml-2">
                   ({((volume / currentWeek.totalVolume) * 100).toFixed(0)}%)
                 </span>

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { saveSetLog, SaveSetLogInput } from '@/actions/set-logs';
 import { Check } from 'lucide-react';
+import { useRestTimer } from '@/components/providers/rest-timer-provider';
 
 export type ExpectedSet = {
   id?: string;
@@ -18,6 +19,7 @@ export type ExpectedSet = {
   actualReps?: number | null;
   rpe?: number | null;
   completedAt?: Date | null;
+  restSeconds?: number | null;
 };
 
 type SetLoggerProps = {
@@ -82,6 +84,7 @@ type SetRowProps = {
 };
 
 function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient, onDone, inputRef }: SetRowProps) {
+  const { startTimer } = useRestTimer();
   const [weight, setWeight] = useState(set.actualWeight?.toString() ?? set.targetWeight?.toString() ?? '');
   const [reps, setReps] = useState(set.actualReps?.toString() ?? set.targetReps?.toString() ?? '');
   const [rpe, setRpe] = useState(set.rpe?.toString() ?? '');
@@ -135,6 +138,7 @@ function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient, onDone, 
   });
 
   const handleDone = () => {
+    const wasCompleted = isCompleted;
     mutation.mutate({
       id: set.id,
       workoutLogId,
@@ -147,6 +151,11 @@ function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient, onDone, 
       actualReps: reps ? parseInt(reps, 10) : null,
       rpe: rpe ? parseFloat(rpe) : null,
     });
+    
+    if (!wasCompleted) {
+      startTimer(set.restSeconds || 90);
+    }
+    
     onDone?.();
   };
 

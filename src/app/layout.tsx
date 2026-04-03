@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { RestTimerProvider } from "@/components/providers/rest-timer-provider";
+import { RestTimer } from "@/components/workout/rest-timer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +30,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <RestTimerProvider>
+            {children}
+            <RestTimer />
+          </RestTimerProvider>
+        </QueryProvider>
       </body>
     </html>
   );

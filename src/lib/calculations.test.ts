@@ -30,6 +30,15 @@ describe('calculations', () => {
       const result = estimateOneRepMax(100, 5);
       assert.ok(Math.abs(result - 116.666) < 0.01);
     });
+
+    it('returns weight when reps is 1', () => {
+      assert.strictEqual(estimateOneRepMax(100, 1), 100);
+    });
+
+    it('returns 0 when reps is 0 or negative', () => {
+      assert.strictEqual(estimateOneRepMax(100, 0), 0);
+      assert.strictEqual(estimateOneRepMax(100, -1), 0);
+    });
   });
 
   describe('convertUnit', () => {

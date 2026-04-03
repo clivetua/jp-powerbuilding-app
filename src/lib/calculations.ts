@@ -1,5 +1,5 @@
-export function calculateTargetWeight(oneRepMax: number, percentage: number, unit: 'kg' | 'lb'): number {
-  const rawWeight = oneRepMax * (percentage / 100);
+export function calculateTargetWeight(baseWeight: number, percentage: number, unit: 'kg' | 'lb'): number {
+  const rawWeight = baseWeight * (percentage / 100);
   if (unit === 'kg') {
     return Math.round(rawWeight / 2.5) * 2.5;
   } else {
@@ -8,6 +8,8 @@ export function calculateTargetWeight(oneRepMax: number, percentage: number, uni
 }
 
 export function estimateOneRepMax(weight: number, reps: number): number {
+  if (reps <= 0) return 0;
+  if (reps === 1) return weight;
   return weight * (1 + reps / 30);
 }
 

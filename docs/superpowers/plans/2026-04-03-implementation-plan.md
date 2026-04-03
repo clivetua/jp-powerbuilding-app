@@ -13,45 +13,59 @@
 - `npx create-next-app@latest` with App Router, TypeScript, Tailwind CSS, ESLint
 - Configure `tailwind.config.ts` with mobile-first breakpoints and custom theme tokens (colors, spacing for gym-friendly tap targets)
 - Add TanStack Query provider in root layout
-- Install dependencies: `@supabase/supabase-js`, `@supabase/ssr`, `@tanstack/react-query`, `recharts` (for charts later)
+- Install dependencies: `@supabase/supabase-js`, `@supabase/ssr`, `@tanstack/react-query`, `recharts` (for charts later), `@prisma/client` and `prisma` (dev)
 
 ### 1.2 — Supabase Project Setup
 - Create Supabase project (or use local dev with `supabase init` + `supabase start`)
 - Configure environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - Create Supabase client utilities (`lib/supabase/client.ts` for browser, `lib/supabase/server.ts` for server components)
 
-### 1.3 — Database Schema Migration
-Create migration with all tables:
+### 1.3 — Database Schema & Prisma Setup
+- Run `npx prisma init` and configure connection to Supabase Postgres (using connection pooling / Transaction connection string)
+- Define schema in `prisma/schema.prisma`:
 
-```sql
--- exercises (library)
-exercises: id, name, muscle_group, category (primary|secondary|tertiary), demo_video_url
+```prisma
+model Profile {
+  id           String  @id // FK to auth.users
+  displayName  String?
+  unitPref     String  @default("kg") // kg or lb
+  bodyWeight   Float?
+  cycles       Cycle[]
+}
 
--- program structure (seed data)
-programs: id, name, description, total_weeks, days_per_week
-program_weeks: id, program_id, week_number, type (full_body|upper_lower)
-program_workouts: id, program_week_id, day_number, label
-program_exercises: id, program_workout_id, exercise_id, order_index, warmup_sets, working_sets, target_reps, percent_1rm, target_rpe, rest_seconds, notes, circuit_group
+model Cycle {
+  id           String   @id @default(uuid())
+  userId       String
+  user         Profile  @relation(fields: [userId], references: [id])
+  programId    String
+  program      Program  @relation(fields: [programId], references: [id])
+  startDate    DateTime @default(now())
+  squat1rm     Float?
+  bench1rm     Float?
+  deadlift1rm  Float?
+  currentWeek  Int      @default(1)
+  status       String   @default("active") // active | completed
+  workoutLogs  WorkoutLog[]
+}
 
--- user data
-profiles: id (FK auth.users), display_name, unit_preference (kg|lb), body_weight
-cycles: id, user_id, program_id, start_date, squat_1rm, bench_1rm, deadlift_1rm, current_week, status (active|completed)
-workout_logs: id, user_id, cycle_id, program_workout_id, started_at, completed_at, duration_seconds, session_rpe
-set_logs: id, workout_log_id, exercise_id, set_number, set_type (warmup|working), target_weight, actual_weight, target_reps, actual_reps, rpe, completed_at
+// ... other models mapping to the design:
+// Program, ProgramWeek, ProgramWorkout, ProgramExercise, Exercise, WorkoutLog, SetLog
 ```
 
-### 1.4 — Row Level Security
-- Enable RLS on all user-data tables (`profiles`, `cycles`, `workout_logs`, `set_logs`)
-- Policy: users can only SELECT/INSERT/UPDATE/DELETE their own rows (`auth.uid() = user_id`)
-- Program tables (`programs`, `program_weeks`, `program_workouts`, `program_exercises`, `exercises`) are read-only for authenticated users
+- Run `npx prisma db push` or `prisma migrate dev` to create the tables in Supabase.
+
+### 1.4 — Data Access & Authorization
+- Because we are using Prisma, we will handle authorization at the application level via Next.js Server Actions and API routes.
+- Ensure all Prisma queries for user data (cycles, workout logs, profiles) strictly include a `userId` filter matching the authenticated user's ID from Supabase Auth (`supabase.auth.getUser()`).
+- (Optional) RLS can still be enabled on Supabase to prevent rogue access, but Prisma will use the connection string with the service role or a dedicated role that bypasses RLS, relying on the Next.js backend for security.
 
 ### 1.5 — Seed Data: Nippard Program
-- Parse the PDF program data into a seed script (`supabase/seed.sql` or `scripts/seed.ts`)
+- Parse the PDF program data into a seed script (`prisma/seed.ts`)
 - All 11 weeks (weeks 1-9 alternating, week 10 max test, week 11 deload)
 - Every exercise with: sets, reps, %1RM (where applicable), RPE targets, rest times, coaching cues
 - Exercise library entries for all ~40+ exercises in the program
 
-**Exit criteria:** `supabase db reset` creates all tables, seeds program data, and RLS policies pass basic tests.
+**Exit criteria:** `npx prisma db push` creates all tables, `npx prisma db seed` seeds program data, and data access passes basic tests.
 
 ---
 
@@ -245,10 +259,10 @@ src/
 │   └── queries.ts              # TanStack Query hooks
 ├── middleware.ts                # Auth middleware
 supabase/
-├── migrations/
-│   └── 001_initial_schema.sql
-├── seed.sql                    # Nippard program data
-└── config.toml
+├── config.toml
+prisma/
+├── schema.prisma               # Prisma schema
+└── seed.ts                     # Seed script
 ```
 
 ---

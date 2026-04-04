@@ -38,7 +38,17 @@ export async function signup(state: AuthState, formData: FormData) {
 
   const supabase = await createClient()
   const headersList = await headers()
-  const origin = headersList.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+  let origin = headersList.get('origin')
+  
+  if (!origin) {
+    if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+      origin = `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    } else if (process.env.VERCEL_URL) {
+      origin = `https://${process.env.VERCEL_URL}`
+    } else {
+      origin = 'http://localhost:3000'
+    }
+  }
 
   const { data, error } = await supabase.auth.signUp({
     email,

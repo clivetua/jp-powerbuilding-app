@@ -24,7 +24,11 @@ const prismaClientSingleton = () => {
     throw new Error('DATABASE_URL is not defined in the environment.');
   }
 
-  const pool = new Pool({ connectionString });
+  const pool = new Pool({ 
+    connectionString,
+    // Enable SSL for external databases like Supabase to prevent connection rejection
+    ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false }
+  });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 };

@@ -64,7 +64,7 @@ export function SetLogger({ workoutLogId, sets }: SetLoggerProps) {
     <div className="space-y-4">
       {displaySets.map((set, index) => (
         <SetRow
-          key={`${set.exerciseId}-${set.setNumber}`}
+          key={`${set.programExerciseId}-${set.setNumber}`}
           workoutLogId={workoutLogId}
           exerciseId={set.exerciseId!}
           set={set}
@@ -116,7 +116,7 @@ function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient, onDone, 
         queryClient.setQueryData<ExpectedSet[]>(queryKey, (old) => {
           if (!old) return old;
           return old.map((s) =>
-            (s.setNumber === newSetData.setNumber && s.exerciseId === newSetData.exerciseId)
+            (s.setNumber === newSetData.setNumber && s.programExerciseId === set.programExerciseId)
               ? {
                   ...s,
                   ...newSetData,
@@ -147,7 +147,7 @@ function SetRow({ workoutLogId, exerciseId, set, queryKey, queryClient, onDone, 
         queryClient.setQueryData<ExpectedSet[]>(queryKey, (old) => {
           if (!old) return old;
           return old.map((s) =>
-            (s.setNumber === newSetData.setNumber && s.exerciseId === newSetData.exerciseId)
+            (s.setNumber === newSetData.setNumber && s.programExerciseId === set.programExerciseId)
               ? { ...s, ...res.data }
               : s
           );

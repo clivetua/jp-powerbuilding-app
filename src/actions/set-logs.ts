@@ -27,6 +27,16 @@ export async function saveSetLog(data: SaveSetLogInput) {
 
     const { id, ...restData } = data;
 
+    // Verify the workout log belongs to the authenticated user
+    const workoutLog = await prisma.workoutLog.findUnique({
+      where: { id: data.workoutLogId },
+      select: { userId: true },
+    });
+
+    if (!workoutLog || workoutLog.userId !== user.id) {
+      return { data: null, error: 'Unauthorized or workout log not found' };
+    }
+
     let savedSetLog;
     if (id) {
       savedSetLog = await prisma.setLog.update({

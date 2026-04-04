@@ -18,6 +18,7 @@ const prismaMock = prisma as unknown as ReturnType<typeof mockDeep<PrismaClient>
 describe('saveSetLog', () => {
   beforeEach(() => {
     mockReset(prismaMock);
+    prismaMock.workoutLog.findUnique.mockResolvedValue({ userId: 'user-1' } as any);
   });
 
   it('creates a new SetLog if id is not provided', async () => {
@@ -59,6 +60,22 @@ describe('saveSetLog', () => {
         completedAt: expect.any(Date),
       })
     });
+  });
+
+  it('fails if the workout log does not belong to the user', async () => {
+    prismaMock.workoutLog.findUnique.mockResolvedValue({ userId: 'other-user' } as any);
+
+    const inputData = {
+      workoutLogId: 'wlog-1',
+      exerciseId: 'ex-1',
+      setNumber: 1,
+      setType: 'working',
+    };
+
+    const result = await saveSetLog(inputData);
+
+    expect(result.error).toBe('Unauthorized or workout log not found');
+    expect(prismaMock.setLog.create).not.toHaveBeenCalled();
   });
 
   it('updates an existing SetLog if id is provided', async () => {

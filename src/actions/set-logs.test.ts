@@ -1,0 +1,122 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockDeep, mockReset } from 'vitest-mock-extended';
+import { PrismaClient } from '@/generated/prisma/client';
+import prisma from '@/lib/prisma';
+import { saveSetLog } from './set-logs';
+
+vi.mock('@/lib/prisma', () => ({
+  __esModule: true,
+  default: mockDeep<PrismaClient>(),
+}));
+
+vi.mock('@/lib/auth', () => ({
+  getUser: vi.fn().mockResolvedValue({ id: 'user-1' }),
+}));
+
+const prismaMock = prisma as unknown as ReturnType<typeof mockDeep<PrismaClient>>;
+
+describe('saveSetLog', () => {
+  beforeEach(() => {
+    mockReset(prismaMock);
+    prismaMock.workoutLog.findUnique.mockResolvedValue({ userId: 'user-1' } as any);
+  });
+
+  it('creates a new SetLog if id is not provided', async () => {
+    const mockNewSetLog = {
+      id: 'new-set-log-id',
+      workoutLogId: 'wlog-1',
+      exerciseId: 'ex-1',
+      setNumber: 1,
+      setType: 'working',
+      targetWeight: 100,
+      actualWeight: 100,
+      targetReps: 5,
+      actualReps: 5,
+      rpe: 8,
+      completedAt: new Date('2024-01-01T12:00:00Z'),
+    };
+    
+    prismaMock.setLog.create.mockResolvedValue(mockNewSetLog);
+    prismaMock.setLog.findMany.mockResolvedValue([]);
+
+    const inputData = {
+      workoutLogId: 'wlog-1',
+      exerciseId: 'ex-1',
+      setNumber: 1,
+      setType: 'working',
+      targetWeight: 100,
+      actualWeight: 100,
+      targetReps: 5,
+      actualReps: 5,
+      rpe: 8,
+    };
+
+    const result = await saveSetLog(inputData);
+
+    expect(result.data).toEqual({ ...mockNewSetLog, isPR: true });
+    expect(prismaMock.setLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        ...inputData,
+        completedAt: expect.any(Date),
+      })
+    });
+  });
+
+  it('fails if the workout log does not belong to the user', async () => {
+    prismaMock.workoutLog.findUnique.mockResolvedValue({ userId: 'other-user' } as any);
+
+    const inputData = {
+      workoutLogId: 'wlog-1',
+      exerciseId: 'ex-1',
+      setNumber: 1,
+      setType: 'working',
+    };
+
+    const result = await saveSetLog(inputData);
+
+    expect(result.error).toBe('Unauthorized or workout log not found');
+    expect(prismaMock.setLog.create).not.toHaveBeenCalled();
+  });
+
+  it('updates an existing SetLog if id is provided', async () => {
+    const mockUpdatedSetLog = {
+      id: 'existing-id',
+      workoutLogId: 'wlog-1',
+      exerciseId: 'ex-1',
+      setNumber: 1,
+      setType: 'working',
+      targetWeight: 100,
+      actualWeight: 105,
+      targetReps: 5,
+      actualReps: 6,
+      rpe: 9,
+      completedAt: new Date('2024-01-01T12:00:00Z'),
+    };
+    
+    prismaMock.setLog.update.mockResolvedValue(mockUpdatedSetLog);
+    prismaMock.setLog.findMany.mockResolvedValue([]);
+
+    const inputData = {
+      id: 'existing-id',
+      workoutLogId: 'wlog-1',
+      exerciseId: 'ex-1',
+      setNumber: 1,
+      setType: 'working',
+      actualWeight: 105,
+      actualReps: 6,
+      rpe: 9,
+    };
+
+    const result = await saveSetLog(inputData);
+
+    expect(result.data).toEqual({ ...mockUpdatedSetLog, isPR: true });
+    expect(prismaMock.setLog.update).toHaveBeenCalledWith({
+      where: { id: 'existing-id' },
+      data: expect.objectContaining({
+        actualWeight: 105,
+        actualReps: 6,
+        rpe: 9,
+      })
+    });
+  });
+});

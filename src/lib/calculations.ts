@@ -65,3 +65,28 @@ export function calculateWarmupPyramid(
 
   return pyramid;
 }
+
+export function checkIfPR(
+  newSet: { weight: number; reps: number },
+  previousSets: Array<{ weight: number; reps: number }>
+): boolean {
+  if (previousSets.length === 0) {
+    return true;
+  }
+
+  if (newSet.weight === 0) {
+    const previousBodyweightSets = previousSets.filter(set => set.weight === 0);
+    if (previousBodyweightSets.length === 0) {
+      return true;
+    }
+    const maxPreviousReps = previousBodyweightSets.reduce((max, set) => Math.max(max, set.reps), 0);
+    return newSet.reps > maxPreviousReps;
+  }
+
+  const new1RM = estimateOneRepMax(newSet.weight, newSet.reps);
+  
+  const previous1RMs = previousSets.map(set => estimateOneRepMax(set.weight, set.reps));
+  const maxPrevious1RM = previous1RMs.reduce((max, current) => Math.max(max, current), 0);
+
+  return new1RM > maxPrevious1RM;
+}
